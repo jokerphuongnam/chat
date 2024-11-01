@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    container_name: chat-backend
+    build:
+      context: ./BackEndGolang
+      dockerfile: Dockerfile
+    ports:
+      - "3031:3031" # Exposes the backend service on port 3031
+    depends_on:
+      - db
+    env_file:
+      - ./BackEndGolang/.env
+    environment:
+      MYSQL_DATABASE: chat
+      MYSQL_ROOT_HOST: localhost
+      MYSQL_USERNAME: root
+      MYSQL_ROOT_PASSWORD: 1234
+
+  frontend:
+    container_name: chat-frontend
+    build:
+      context: ./FrontEndReactJSTypeScript
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000" # Exposes the frontend service on port 3000
+
+  db:
+    container_name: chat-db
+    image: mysql:8.0
+    platform: linux/amd64
+    restart: always
+    ports:
+      - "3306:3306" # Exposes MySQL on port 3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:

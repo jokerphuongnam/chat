@@ -1,0 +1,13 @@
+app_name: Chat
+version: 1.0
+database:
+  name: ${MYSQL_DATABASE}
+  host: ${MYSQL_ROOT_HOST}
+  port: 3306
+  username: ${MYSQL_USERNAME}
+  password: ${MYSQL_ROOT_PASSWORD}
+server:
+  port: ${SERVER_PORT}
+  host: ${SERVER_HOST}
+  ip_address: 127.0.0.1
+  secret_key: ${SECRET_KEY}
