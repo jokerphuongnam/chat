@@ -1,0 +1,23 @@
+/* AuthPage.css */
+.container {
+    margin-top: 5rem;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.auth-tabs {
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.button {
+    margin-top: 1rem;
+}
+
+/* Additional styles can be added as needed */

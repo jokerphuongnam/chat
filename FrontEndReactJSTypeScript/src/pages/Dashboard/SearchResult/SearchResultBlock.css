@@ -1,0 +1,38 @@
+.search-result-container {
+    flex-wrap: nowrap;
+    align-content: center;
+}
+
+.non-scroll-container {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow-y: none;
+}
+
+.search-result-list {
+    overflow-y: scroll;
+    gap: 8px;
+    height: 100%;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.search-result-item:hover {
+    background-color: var(--bs-secondary-bg-subtle);
+}
+
+.search-result-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 8px;
+    padding: 8px 4px;
+}

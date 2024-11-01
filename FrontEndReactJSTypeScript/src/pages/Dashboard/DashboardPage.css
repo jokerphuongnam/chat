@@ -1,0 +1,37 @@
+.dashboard-root {
+    background-color: var(--bs-secondary-bg-subtle);
+    height: 100vh;
+}
+
+.dashboard-stack-container {
+    display: flex;
+    height: 100%;
+}
+
+.dashboard-left {
+    height: 90%;
+    border-radius: 8px;
+    background-color: white;
+    margin-left: auto;
+}
+
+.dashboard-right {
+    height: 90%;
+    border-radius: 8px;
+    background-color: white;
+    margin-right: auto;
+}
+
+.display-flex {
+    display: flex;
+}
+
+.dashboard-header,
+.dashboard-search {
+    border-bottom: 1px solid;
+    border-color: whitesmoke;
+}
+
+.dashboard-search {
+    padding-bottom: 8px;
+}
