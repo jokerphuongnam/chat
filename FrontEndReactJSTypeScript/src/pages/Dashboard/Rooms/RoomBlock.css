@@ -9,3 +9,47 @@
     max-height: 100%;
     overflow-y: none;
 }
+
+.room-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.room-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.room-image {
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.room-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.room-name {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.room-last-message {
+    color: #757575;
+    font-size: 12px;
+}
+
+.room-time {
+    color: #9e9e9e;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.room-item:hover {
+    background-color: var(--bs-secondary-bg-subtle);
+    border-radius: 8px !important;
+}

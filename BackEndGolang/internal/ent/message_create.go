@@ -204,14 +204,6 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 		_spec.SetField(message.FieldContent, field.TypeString, value)
 		_node.Content = value
 	}
-	if value, ok := mc.mutation.IDRoom(); ok {
-		_spec.SetField(message.FieldIDRoom, field.TypeUUID, value)
-		_node.IDRoom = value
-	}
-	if value, ok := mc.mutation.IDUserSend(); ok {
-		_spec.SetField(message.FieldIDUserSend, field.TypeUUID, value)
-		_node.IDUserSend = value
-	}
 	if nodes := mc.mutation.RoomsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -226,7 +218,7 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.room_messages = &nodes[0]
+		_node.IDRoom = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := mc.mutation.UsersIDs(); len(nodes) > 0 {
@@ -243,7 +235,7 @@ func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_messages = &nodes[0]
+		_node.IDUserSend = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

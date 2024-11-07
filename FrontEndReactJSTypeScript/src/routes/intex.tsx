@@ -23,23 +23,15 @@ const AppRoutes: React.FC = () => {
     const [isAuth, setAuth] = useState(isAuthenticated());
 
     useEffect(() => {
-        const handleStorageChange = () => {
-            console.log('AppRoutes: User authentication status updated', isAuth);
-            setAuth(isAuthenticated());
-        }
+        setAuth(isAuthenticated());
+    }, [isAuth]);
 
-        console.log('Add event listener for storage changes to update user authentication status');
-        window.addEventListener('storage', handleStorageChange);
-
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-        }
-    });
+    console.log('AppRoutes rebuild');
 
     return (
         <Router>
             <Routes>
-                <Route path='/' element={isAuth ? <DashboardRoutes /> : <Redirect to='/auth' />} />
+                <Route path='*' element={isAuth ? <DashboardRoutes /> : <Redirect to='/auth' />} />
                 <Route path='/auth/*' element={isAuth ? <Redirect to='/' /> : <AuthRoutes />} />
             </Routes>
         </Router>

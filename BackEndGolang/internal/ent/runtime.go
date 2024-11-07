@@ -21,12 +21,8 @@ import (
 func init() {
 	authorizeFields := schema.Authorize{}.Fields()
 	_ = authorizeFields
-	// authorizeDescJwtToken is the schema descriptor for jwt_token field.
-	authorizeDescJwtToken := authorizeFields[1].Descriptor()
-	// authorize.JwtTokenValidator is a validator for the "jwt_token" field. It is called by the builders before save.
-	authorize.JwtTokenValidator = authorizeDescJwtToken.Validators[0].(func(string) error)
 	// authorizeDescToken is the schema descriptor for token field.
-	authorizeDescToken := authorizeFields[2].Descriptor()
+	authorizeDescToken := authorizeFields[1].Descriptor()
 	// authorize.TokenValidator is a validator for the "token" field. It is called by the builders before save.
 	authorize.TokenValidator = authorizeDescToken.Validators[0].(func(string) error)
 	// authorizeDescID is the schema descriptor for id field.

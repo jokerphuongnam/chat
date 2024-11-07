@@ -13,9 +13,15 @@ const SearchBlock: React.FC<SearchBlockProps> = ({ searchQuery, setSearchQuery, 
             <input
                 type="text"
                 value={searchQuery}
-                onFocus={() => { onFocus(true); }}
-                onBlur={(event) => { onFocus(false); }}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(event) => {
+                    const query = event.target.value;
+                    setSearchQuery(query);
+                    if (query) {
+                        onFocus(true)
+                    } else {
+                        onFocus(false)
+                    }
+                }}
                 placeholder="Search for a room"
                 className='search-input w-100'
             />

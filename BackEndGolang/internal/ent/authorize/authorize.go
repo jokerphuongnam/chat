@@ -12,8 +12,6 @@ const (
 	Label = "authorize"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldJwtToken holds the string denoting the jwt_token field in the database.
-	FieldJwtToken = "jwt_token"
 	// FieldToken holds the string denoting the token field in the database.
 	FieldToken = "token"
 	// Table holds the table name of the authorize in the database.
@@ -23,7 +21,6 @@ const (
 // Columns holds all SQL columns for authorize fields.
 var Columns = []string{
 	FieldID,
-	FieldJwtToken,
 	FieldToken,
 }
 
@@ -38,8 +35,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// JwtTokenValidator is a validator for the "jwt_token" field. It is called by the builders before save.
-	JwtTokenValidator func(string) error
 	// TokenValidator is a validator for the "token" field. It is called by the builders before save.
 	TokenValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
@@ -52,11 +47,6 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
-}
-
-// ByJwtToken orders the results by the jwt_token field.
-func ByJwtToken(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldJwtToken, opts...).ToFunc()
 }
 
 // ByToken orders the results by the token field.

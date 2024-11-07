@@ -45,7 +45,6 @@ type AuthorizeMutation struct {
 	op            Op
 	typ           string
 	id            *uuid.UUID
-	jwt_token     *string
 	token         *string
 	clearedFields map[string]struct{}
 	done          bool
@@ -157,55 +156,6 @@ func (m *AuthorizeMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	}
 }
 
-// SetJwtToken sets the "jwt_token" field.
-func (m *AuthorizeMutation) SetJwtToken(s string) {
-	m.jwt_token = &s
-}
-
-// JwtToken returns the value of the "jwt_token" field in the mutation.
-func (m *AuthorizeMutation) JwtToken() (r string, exists bool) {
-	v := m.jwt_token
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldJwtToken returns the old "jwt_token" field's value of the Authorize entity.
-// If the Authorize object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AuthorizeMutation) OldJwtToken(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldJwtToken is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldJwtToken requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldJwtToken: %w", err)
-	}
-	return oldValue.JwtToken, nil
-}
-
-// ClearJwtToken clears the value of the "jwt_token" field.
-func (m *AuthorizeMutation) ClearJwtToken() {
-	m.jwt_token = nil
-	m.clearedFields[authorize.FieldJwtToken] = struct{}{}
-}
-
-// JwtTokenCleared returns if the "jwt_token" field was cleared in this mutation.
-func (m *AuthorizeMutation) JwtTokenCleared() bool {
-	_, ok := m.clearedFields[authorize.FieldJwtToken]
-	return ok
-}
-
-// ResetJwtToken resets all changes to the "jwt_token" field.
-func (m *AuthorizeMutation) ResetJwtToken() {
-	m.jwt_token = nil
-	delete(m.clearedFields, authorize.FieldJwtToken)
-}
-
 // SetToken sets the "token" field.
 func (m *AuthorizeMutation) SetToken(s string) {
 	m.token = &s
@@ -276,10 +226,7 @@ func (m *AuthorizeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AuthorizeMutation) Fields() []string {
-	fields := make([]string, 0, 2)
-	if m.jwt_token != nil {
-		fields = append(fields, authorize.FieldJwtToken)
-	}
+	fields := make([]string, 0, 1)
 	if m.token != nil {
 		fields = append(fields, authorize.FieldToken)
 	}
@@ -291,8 +238,6 @@ func (m *AuthorizeMutation) Fields() []string {
 // schema.
 func (m *AuthorizeMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case authorize.FieldJwtToken:
-		return m.JwtToken()
 	case authorize.FieldToken:
 		return m.Token()
 	}
@@ -304,8 +249,6 @@ func (m *AuthorizeMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *AuthorizeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case authorize.FieldJwtToken:
-		return m.OldJwtToken(ctx)
 	case authorize.FieldToken:
 		return m.OldToken(ctx)
 	}
@@ -317,13 +260,6 @@ func (m *AuthorizeMutation) OldField(ctx context.Context, name string) (ent.Valu
 // type.
 func (m *AuthorizeMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case authorize.FieldJwtToken:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetJwtToken(v)
-		return nil
 	case authorize.FieldToken:
 		v, ok := value.(string)
 		if !ok {
@@ -360,11 +296,7 @@ func (m *AuthorizeMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *AuthorizeMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(authorize.FieldJwtToken) {
-		fields = append(fields, authorize.FieldJwtToken)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -377,11 +309,6 @@ func (m *AuthorizeMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *AuthorizeMutation) ClearField(name string) error {
-	switch name {
-	case authorize.FieldJwtToken:
-		m.ClearJwtToken()
-		return nil
-	}
 	return fmt.Errorf("unknown Authorize nullable field %s", name)
 }
 
@@ -389,9 +316,6 @@ func (m *AuthorizeMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *AuthorizeMutation) ResetField(name string) error {
 	switch name {
-	case authorize.FieldJwtToken:
-		m.ResetJwtToken()
-		return nil
 	case authorize.FieldToken:
 		m.ResetToken()
 		return nil
@@ -1093,8 +1017,6 @@ type MessageMutation struct {
 	adddate_send  *int64
 	type_message  *message.TypeMessage
 	content       *string
-	id_room       *uuid.UUID
-	id_user_send  *uuid.UUID
 	clearedFields map[string]struct{}
 	rooms         *uuid.UUID
 	clearedrooms  bool
@@ -1339,12 +1261,12 @@ func (m *MessageMutation) ResetContent() {
 
 // SetIDRoom sets the "id_room" field.
 func (m *MessageMutation) SetIDRoom(u uuid.UUID) {
-	m.id_room = &u
+	m.rooms = &u
 }
 
 // IDRoom returns the value of the "id_room" field in the mutation.
 func (m *MessageMutation) IDRoom() (r uuid.UUID, exists bool) {
-	v := m.id_room
+	v := m.rooms
 	if v == nil {
 		return
 	}
@@ -1370,17 +1292,17 @@ func (m *MessageMutation) OldIDRoom(ctx context.Context) (v uuid.UUID, err error
 
 // ResetIDRoom resets all changes to the "id_room" field.
 func (m *MessageMutation) ResetIDRoom() {
-	m.id_room = nil
+	m.rooms = nil
 }
 
 // SetIDUserSend sets the "id_user_send" field.
 func (m *MessageMutation) SetIDUserSend(u uuid.UUID) {
-	m.id_user_send = &u
+	m.users = &u
 }
 
 // IDUserSend returns the value of the "id_user_send" field in the mutation.
 func (m *MessageMutation) IDUserSend() (r uuid.UUID, exists bool) {
-	v := m.id_user_send
+	v := m.users
 	if v == nil {
 		return
 	}
@@ -1406,7 +1328,7 @@ func (m *MessageMutation) OldIDUserSend(ctx context.Context) (v uuid.UUID, err e
 
 // ResetIDUserSend resets all changes to the "id_user_send" field.
 func (m *MessageMutation) ResetIDUserSend() {
-	m.id_user_send = nil
+	m.users = nil
 }
 
 // SetRoomsID sets the "rooms" edge to the Room entity by id.
@@ -1417,6 +1339,7 @@ func (m *MessageMutation) SetRoomsID(id uuid.UUID) {
 // ClearRooms clears the "rooms" edge to the Room entity.
 func (m *MessageMutation) ClearRooms() {
 	m.clearedrooms = true
+	m.clearedFields[message.FieldIDRoom] = struct{}{}
 }
 
 // RoomsCleared reports if the "rooms" edge to the Room entity was cleared.
@@ -1456,6 +1379,7 @@ func (m *MessageMutation) SetUsersID(id uuid.UUID) {
 // ClearUsers clears the "users" edge to the User entity.
 func (m *MessageMutation) ClearUsers() {
 	m.clearedusers = true
+	m.clearedFields[message.FieldIDUserSend] = struct{}{}
 }
 
 // UsersCleared reports if the "users" edge to the User entity was cleared.
@@ -1531,10 +1455,10 @@ func (m *MessageMutation) Fields() []string {
 	if m.content != nil {
 		fields = append(fields, message.FieldContent)
 	}
-	if m.id_room != nil {
+	if m.rooms != nil {
 		fields = append(fields, message.FieldIDRoom)
 	}
-	if m.id_user_send != nil {
+	if m.users != nil {
 		fields = append(fields, message.FieldIDUserSend)
 	}
 	return fields

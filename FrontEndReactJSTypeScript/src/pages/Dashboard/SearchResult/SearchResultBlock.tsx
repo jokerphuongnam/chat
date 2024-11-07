@@ -4,13 +4,16 @@ import React, { useEffect, useState } from 'react';
 import SearchService, { SearchResponse } from '../../../services/SearchService';
 import isSuccessfulResponse from '../../../utils/HttpUtils';
 import { Alert, ListGroup, Spinner, Stack } from 'react-bootstrap';
+import FetchRoomIDService from '../../../services/FetchRoomIDService';
+import { UserInfo } from '../../../services/FecthUserInfoService';
 
 interface SearchResultBlockProps {
     searchQuery: string;
-    onClicked: (roomId: string) => void;
+    onClicked: (roomId: string | null) => void;
+    setUserInfo: (userInfo: UserInfo) => void;
 }
 
-const SearchResultBlock: React.FC<SearchResultBlockProps> = ({ searchQuery, onClicked }) => {
+const SearchResultBlock: React.FC<SearchResultBlockProps> = ({ searchQuery, onClicked, setUserInfo }) => {
     const [isLoading, setLoading] = useState(false);
     const [searchResults, setSearchResults] = useState<SearchResponse[]>([]);
     const [error, setError] = useState('');
@@ -43,7 +46,7 @@ const SearchResultBlock: React.FC<SearchResultBlockProps> = ({ searchQuery, onCl
                 setError('');
             }
         }
-    }, [searchQuery, currentSearchQuery]);
+    }, [searchQuery]);
 
     return (
         <>
@@ -57,12 +60,27 @@ const SearchResultBlock: React.FC<SearchResultBlockProps> = ({ searchQuery, onCl
                         </Alert> : searchResults && searchResults.length > 0 ? (
                             <ListGroup className='search-result-list' variant='flush'>
                                 {searchResults.map((item, index) => (
-                                    <div onClick={() => onClicked(item.id)}>
+                                    <div onClick={async (event) => {
+                                        event.preventDefault();
+                                        const reponse = await FetchRoomIDService(item.id);
+                                        if (isSuccessfulResponse(reponse.code)) {
+                                            if (reponse.data) {
+                                                onClicked(reponse.data);
+                                            } else {
+                                                setUserInfo({
+                                                    id: item.id,
+                                                    name: item.name,
+                                                    avatarUrl: item.avatarUrl
+                                                })
+                                            }
+                                        } else {
+                                            console.error('Error fetching room ID', reponse.message);
+                                        }
+                                    }}>
                                         <SearchResultItem
                                             key={item.id}
                                             avatarUrl={item.avatarUrl}
                                             name={item.name}
-
                                         />
                                     </div>
                                 ))}

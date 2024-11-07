@@ -1,21 +1,42 @@
 import axios from 'axios';
 import { ResponseModel } from './ResponseModel';
+import { snakeToCamel } from '../utils/snakeToCamel';
+
+export type Member = {
+    id: string;
+    name: string;
+}
+
+export type LastMessage = {
+    content: string;
+    sendAt: number;
+    sender: string;
+    typeMessage: string;
+}
 
 export type RoomDetails = {
-
+    id: string;
+    name: string;
+    imageUrl: string;
+    lastMessage: LastMessage;
+    members: Member[];
 }
 
 const FetchRoomsService = async (): Promise<ResponseModel<RoomDetails[]>> => {
     const token = localStorage.token;
     try {
-        let loginResponse = await axios.get<ResponseModel<RoomDetails[]>>('/v1/rooms', {
+        let response = await axios.get('/v1/rooms', {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': token
             },
-        })
-        console.log('FetchRoomsService', loginResponse.data);
-        return loginResponse.data;
+        });
+
+        return {
+            code: response.data.code,
+            message: response.data.message,
+            data: response.data.data.map((room: any) => snakeToCamel(room)),
+        };
     } catch (error) {
         console.error('Error logging in', error || 'Unknown error')
         throw error

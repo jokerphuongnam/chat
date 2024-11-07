@@ -11,7 +11,6 @@ var (
 	// AuthorizesColumns holds the columns for the "authorizes" table.
 	AuthorizesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "jwt_token", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "token", Type: field.TypeString, Unique: true},
 	}
 	// AuthorizesTable holds the schema information for the "authorizes" table.
@@ -63,8 +62,6 @@ var (
 		{Name: "content", Type: field.TypeString},
 		{Name: "id_room", Type: field.TypeUUID},
 		{Name: "id_user_send", Type: field.TypeUUID},
-		{Name: "room_messages", Type: field.TypeUUID},
-		{Name: "user_messages", Type: field.TypeUUID},
 	}
 	// MessagesTable holds the schema information for the "messages" table.
 	MessagesTable = &schema.Table{
@@ -74,13 +71,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "messages_rooms_messages",
-				Columns:    []*schema.Column{MessagesColumns[6]},
+				Columns:    []*schema.Column{MessagesColumns[4]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "messages_users_messages",
-				Columns:    []*schema.Column{MessagesColumns[7]},
+				Columns:    []*schema.Column{MessagesColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

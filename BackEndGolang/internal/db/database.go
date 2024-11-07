@@ -4,12 +4,19 @@ import (
 	"chat-backend/config"
 	"chat-backend/internal/ent"
 	"context"
+	"database/sql"
 	"fmt"
 
+	"entgo.io/ent/dialect"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func GetClient(cfg config.AppConfig) (*ent.Client, error) {
+type Database struct {
+	Client *ent.Client
+	db     *sql.DB
+}
+
+func GetClient(cfg config.AppConfig) (*Database, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=True",
 		cfg.Database.Username,
 		cfg.Database.Password,
@@ -19,7 +26,13 @@ func GetClient(cfg config.AppConfig) (*ent.Client, error) {
 	)
 
 	// Connect to the database
-	client, err := ent.Open("mysql", dsn)
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("failed connecting to mysql: %w", err)
+	}
+
+	// Initialize Ent client
+	client, err := ent.Open(dialect.MySQL, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed connecting to mysql: %w", err)
 	}
@@ -28,6 +41,8 @@ func GetClient(cfg config.AppConfig) (*ent.Client, error) {
 		client.Close()
 		return nil, fmt.Errorf("failed creating schema resources: %w", err)
 	}
-
-	return client, nil
+	return &Database{
+		Client: client,
+		db:     db,
+	}, nil
 }

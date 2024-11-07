@@ -1,11 +1,11 @@
 package database
 
 import (
-	"chat-backend/internal/ent"
 	"chat-backend/internal/ent/member"
 	"chat-backend/internal/ent/message"
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -18,9 +18,26 @@ type MessageResponse struct {
 	Room        uuid.UUID           `json:"room_id"`
 }
 
-func SendMessageToRoomHandler(client *ent.Client, from, to uuid.UUID, message string, messageType message.TypeMessage) (MessageResponse, error) {
+func (db *Database) SendMessageToRoomHandler(from, to uuid.UUID, message string, messageType message.TypeMessage) (MessageResponse, error) {
+	// Start transaction
+	tx, err := db.Client.Tx(context.Background())
+	if err != nil {
+		return MessageResponse{}, fmt.Errorf("failed to start transaction: %w", err)
+	}
+
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback() // Rollback on panic
+			panic(p)          // Re-throw the panic after rollback
+		} else if err != nil {
+			_ = tx.Rollback() // Rollback on error
+		} else {
+			err = tx.Commit() // Commit if no errors
+		}
+	}()
+
 	// Check if the user is part of the room.
-	member, err := client.Member.Query().
+	member, err := db.Client.Member.Query().
 		Where(
 			member.And(member.UserIDEQ(from), member.RoomID(to)),
 		).
@@ -30,11 +47,11 @@ func SendMessageToRoomHandler(client *ent.Client, from, to uuid.UUID, message st
 	}
 
 	// Create a new message.
-	newMessage, err := client.Message.Create().
+	newMessage, err := db.Client.Message.Create().
 		SetIDUserSend(from).
 		SetIDRoom(member.RoomID).
 		SetContent(message).
-		SetDateSend(uint64(context.Background().Value("timestamp").(uint64))).
+		SetDateSend(uint64(time.Now().UnixMilli())).
 		SetTypeMessage(messageType).
 		Save(context.Background())
 	if err != nil {

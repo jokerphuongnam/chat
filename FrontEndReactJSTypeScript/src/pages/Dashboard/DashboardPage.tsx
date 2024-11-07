@@ -7,55 +7,75 @@ import RoomsBlock from './Rooms/RoomsBlock';
 import SearchBlock from './Search/SearchBlock';
 import HeaderBlock from './Header/HeaderBlock';
 import MessagesBlock from './Messages/MessagesBlock';
-import FecthUserInfoService from '../../services/FecthUserInfoService';
 import { UserInfo } from '../../services/FecthUserInfoService';
-import isSuccessfulResponse from '../../utils/HttpUtils';
+import RoomInfoBlock from './RoomInfo/RoomInfoBlock';
+import useWebSocket from '../../hooks/useWebSocket';
+import { RoomDetails } from '../../services/FetchRoomsService';
+
+export type RoomInfo = {
+    roomImage: string;
+    roomName: string;
+}
 
 const DashboardPage: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchResultVisible, setSearchResultVisible] = useState(false);
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-    const [roomId, setRoomId] = useState('');
+    const [roomId, setRoomId] = useState<string>('');
+    const [message, sendMessage] = useWebSocket('ws://localhost:3031/ws', localStorage.token);
+    const [roomDetails, setRoomDetails] = useState<RoomDetails[]>([]);
 
-    const fetchUserInfo = async () => {
-        try {
-            const response = await FecthUserInfoService();
-            if (isSuccessfulResponse(response.code)) {
-                setUserInfo(response.data);
-            } else {
+    useEffect(() => {
 
-            }
-        } catch (error) {
+    });
 
+    const onRoomSelect = (roomId: string | null) => {
+        if (roomId) {
+            setRoomId(roomId);
         }
-    }
-
-    const onRoomSelect = (roomId: string) => {
-        setRoomId(roomId);
+        setSearchResultVisible(false);
+        setSearchQuery('');
     }
 
     useEffect(() => {
-        fetchUserInfo();
-    }, []);
+        if (roomDetails.length > 0) {
+            let firstRooom = roomDetails[0];
+            setUserInfo({
+                id: firstRooom.id,
+                name: firstRooom.name,
+                avatarUrl: firstRooom.imageUrl
+            });
+        }
+    }, [roomDetails]);
 
     return (
         <>
             <div className='dashboard-root mt-0 mb-0'>
-                <Stack direction='horizontal' gap={2} className='mt-0 mb-0 display-flex dashboard-stack-container'>
-                    <div className='p-2 col-3 dashboard-left display-flex'>
+                <Stack direction='horizontal' gap={3} className='mt-0 mb-0 display-flex dashboard-stack-container'>
+                    <div className='p-3 col-3 dashboard-left display-flex dashboard-element'>
                         <Stack direction='vertical' className='display-flex' gap={2}>
                             <div className='dashboard-search'>
                                 <SearchBlock searchQuery={searchQuery} setSearchQuery={setSearchQuery} onFocus={setSearchResultVisible} />
                             </div>
-                            {isSearchResultVisible ? <SearchResultBlock searchQuery={searchQuery} onClicked={onRoomSelect}/> : < RoomsBlock />}
+                            {isSearchResultVisible ? <SearchResultBlock searchQuery={searchQuery} onClicked={onRoomSelect} setUserInfo={setUserInfo} /> : < RoomsBlock roomDetails={roomDetails} setRoomDetails={setRoomDetails} selectRoom={onRoomSelect} />}
                         </Stack>
                     </div>
-                    <div className='p-2 col-8 dashboard-right'>
-                        <div className='dashboard-header'>
-                            <HeaderBlock avatarUrl={userInfo?.avatarUrl ?? ''} name={userInfo?.name ?? ''} />
-                        </div>
-                        <MessagesBlock roomId={roomId} />
-                    </div>
+
+                    {
+                        userInfo && (
+                            <>
+                                <div className='p-2 col-5 dashboard-center dashboard-element'>
+                                    <div className='dashboard-header'>
+                                        <HeaderBlock avatarUrl={userInfo?.avatarUrl ?? ''} name={userInfo?.name ?? ''} />
+                                    </div>
+                                    <MessagesBlock roomId={roomId} sendMessage={sendMessage} userId={userInfo?.id} />
+                                </div>
+                                <div className='p-2 col-3 dashboard-right dashboard-element'>
+                                    <RoomInfoBlock />
+                                </div>
+                            </>
+                        )
+                    }
                 </Stack>
             </div>
         </>

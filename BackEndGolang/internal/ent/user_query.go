@@ -488,7 +488,9 @@ func (uq *UserQuery) loadMessages(ctx context.Context, query *MessageQuery, node
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(message.FieldIDUserSend)
+	}
 	query.Where(predicate.Message(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.MessagesColumn), fks...))
 	}))
@@ -497,13 +499,10 @@ func (uq *UserQuery) loadMessages(ctx context.Context, query *MessageQuery, node
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_messages
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_messages" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.IDUserSend
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_messages" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "id_user_send" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -18,10 +18,17 @@ type DatabaseConfig struct {
 }
 
 type ServerConfig struct {
-	Port      int    `yaml:"port"`
-	Host      string `yaml:"host"`
-	IPAddress string `yaml:"ip_address"`
-	SecretKey string `yaml:"secret_key"`
+	Port         int          `yaml:"port"`
+	Host         string       `yaml:"host"`
+	IPAddress    string       `yaml:"ip_address"`
+	SecretKey    string       `yaml:"secret_key"`
+	ReadTimeout  int `yaml:"read_timeout"`
+	WriteTimeout int `yaml:"write_timeout"`
+	IdleTimeout  int `yaml:"idle_timeout"`
+}
+
+type CacheConfig struct {
+	Addr string `yaml:"addr"`
 }
 
 type AppConfig struct {
@@ -29,6 +36,7 @@ type AppConfig struct {
 	Version  string         `yaml:"version"`
 	Database DatabaseConfig `yaml:"database"`
 	Server   ServerConfig   `yaml:"server"`
+	Cache    CacheConfig    `yaml:"cache"`
 }
 
 func LoadConfig(filePath string) (AppConfig, error) {

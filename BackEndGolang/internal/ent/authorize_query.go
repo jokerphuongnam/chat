@@ -263,12 +263,12 @@ func (aq *AuthorizeQuery) Clone() *AuthorizeQuery {
 // Example:
 //
 //	var v []struct {
-//		JwtToken string `json:"jwt_token,omitempty"`
+//		Token string `json:"token,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Authorize.Query().
-//		GroupBy(authorize.FieldJwtToken).
+//		GroupBy(authorize.FieldToken).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (aq *AuthorizeQuery) GroupBy(field string, fields ...string) *AuthorizeGroupBy {
@@ -286,11 +286,11 @@ func (aq *AuthorizeQuery) GroupBy(field string, fields ...string) *AuthorizeGrou
 // Example:
 //
 //	var v []struct {
-//		JwtToken string `json:"jwt_token,omitempty"`
+//		Token string `json:"token,omitempty"`
 //	}
 //
 //	client.Authorize.Query().
-//		Select(authorize.FieldJwtToken).
+//		Select(authorize.FieldToken).
 //		Scan(ctx, &v)
 func (aq *AuthorizeQuery) Select(fields ...string) *AuthorizeSelect {
 	aq.ctx.Fields = append(aq.ctx.Fields, fields...)

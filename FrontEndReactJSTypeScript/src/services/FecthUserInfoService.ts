@@ -21,7 +21,7 @@ const FecthUserInfoService = async (): Promise<ResponseModel<UserInfo | null>> =
                 'Content-Type': 'application/json',
                 'Authorization': token
             },
-        })
+        });
         console.log('FetchRoomsService', loginResponse.data);
         return {
             code: loginResponse.data.code,

@@ -11,3 +11,8 @@ server:
   host: ${SERVER_HOST}
   ip_address: 127.0.0.1
   secret_key: ${SECRET_KEY}
+  read_timeout: 30
+  write_timeout: 30
+  idle_timeout: 180
+cache:
+  addr: ${REDIS_ADDR}

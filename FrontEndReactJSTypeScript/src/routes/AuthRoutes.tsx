@@ -7,6 +7,6 @@ const AuthRoutes: React.FC = () => (
         <Route path="/login" element={<AuthPage />} />
         <Route path="/register" element={<AuthPage />} />
     </Routes>
-)
+);
 
 export default AuthRoutes;

@@ -31,10 +31,8 @@ type Message struct {
 	IDUserSend uuid.UUID `json:"id_user_send,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MessageQuery when eager-loading is set.
-	Edges         MessageEdges `json:"edges"`
-	room_messages *uuid.UUID
-	user_messages *uuid.UUID
-	selectValues  sql.SelectValues
+	Edges        MessageEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // MessageEdges holds the relations/edges for other nodes in the graph.
@@ -81,10 +79,6 @@ func (*Message) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case message.FieldID, message.FieldIDRoom, message.FieldIDUserSend:
 			values[i] = new(uuid.UUID)
-		case message.ForeignKeys[0]: // room_messages
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case message.ForeignKeys[1]: // user_messages
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -135,20 +129,6 @@ func (m *Message) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id_user_send", values[i])
 			} else if value != nil {
 				m.IDUserSend = *value
-			}
-		case message.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field room_messages", values[i])
-			} else if value.Valid {
-				m.room_messages = new(uuid.UUID)
-				*m.room_messages = *value.S.(*uuid.UUID)
-			}
-		case message.ForeignKeys[1]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_messages", values[i])
-			} else if value.Valid {
-				m.user_messages = new(uuid.UUID)
-				*m.user_messages = *value.S.(*uuid.UUID)
 			}
 		default:
 			m.selectValues.Set(columns[i], values[i])

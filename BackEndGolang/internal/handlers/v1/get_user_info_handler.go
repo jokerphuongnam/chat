@@ -1,17 +1,25 @@
 package handlers
 
 import (
-	database "chat-backend/internal/db"
-	"chat-backend/internal/ent"
 	"chat-backend/internal/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func GetUserInfoHandler(c *gin.Context, dbClient *ent.Client, secretKey string) {
+func (handler *Handler) GetUserInfoHandler(c *gin.Context) {
+	// Get jwt token from headers
+	jwtToken, err := utils.GetJWTTokenFromHeader(c)
+	if err!= nil {
+		c.JSON(http.StatusUnauthorized, ResponseMessage{
+            Code:    http.StatusUnauthorized,
+            Message: "Unauthorized: Missing or invalid Bearer token",
+        })
+        return
+	}
+
 	// Get user ID from the header.
-	userID, err := utils.GetUserIdFromHeader(c, secretKey)
+	userID, err := handler.Cache.GetUserID(jwtToken)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ResponseMessage{
 			Code:    http.StatusBadRequest,
@@ -20,7 +28,7 @@ func GetUserInfoHandler(c *gin.Context, dbClient *ent.Client, secretKey string) 
 		return
 	}
 
-	user, err := database.GetUserInfoHandler(dbClient, userID)
+	user, err := handler.Database.GetUserInfoHandler(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ResponseMessage{
 			Code:    http.StatusInternalServerError,

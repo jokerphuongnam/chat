@@ -5,13 +5,13 @@ import (
 	"chat-backend/internal/ent/member"
 	"chat-backend/internal/ent/message"
 	"context"
-	"sort"
 
 	"github.com/google/uuid"
 )
 
 // RoomDetails represents the structure for the room information along with last message and members.
 type RoomDetails struct {
+	ID          uuid.UUID            `json:"id"`
 	Name        *string              `json:"name"`
 	ImageURL    *string              `json:"image_url"`
 	LastMessage *LastMessageResponse `json:"last_message"`
@@ -33,9 +33,9 @@ type MemberResponse struct {
 	AvatarURL *string   `json:"avatar_url,omitempty"`
 }
 
-func GetRoomsByUserHandler(client *ent.Client, userID uuid.UUID) ([]*RoomDetails, error) {
+func (db *Database) GetRoomsByUserHandler(userID uuid.UUID) ([]*RoomDetails, error) {
 	// Get rooms where the user is a member
-	members, err := client.Member.Query().
+	members, err := db.Client.Member.Query().
 		Where(member.UserID(userID)).
 		WithRooms().
 		All(context.Background())
@@ -43,7 +43,7 @@ func GetRoomsByUserHandler(client *ent.Client, userID uuid.UUID) ([]*RoomDetails
 		return nil, err
 	}
 
-	roomsDetails := make([]*RoomDetails, len(members))
+	roomsDetails := make([]*RoomDetails, 0)
 
 	for _, member := range members {
 		r := member.Edges.Rooms
@@ -70,6 +70,7 @@ func GetRoomsByUserHandler(client *ent.Client, userID uuid.UUID) ([]*RoomDetails
 
 		// Construct room details
 		roomDetails := &RoomDetails{
+			ID:       member.RoomID,
 			Name:     getRoomName(roomInfo, membersInRoom),
 			ImageURL: getRoomImageURL(roomInfo, membersInRoom),
 			LastMessage: &LastMessageResponse{
@@ -84,13 +85,13 @@ func GetRoomsByUserHandler(client *ent.Client, userID uuid.UUID) ([]*RoomDetails
 		roomsDetails = append(roomsDetails, roomDetails)
 	}
 
-	// Sort the room details by the last message send time (ascending order)
-	sort.Slice(roomsDetails, func(i, j int) bool {
-		if roomsDetails[i].LastMessage != nil && roomsDetails[j].LastMessage != nil {
-			return roomsDetails[i].LastMessage.SendAt < roomsDetails[j].LastMessage.SendAt
-		}
-		return false
-	})
+	// // Sort the room details by the last message send time (ascending order)
+	// sort.Slice(roomsDetails, func(i, j int) bool {
+	// 	if roomsDetails[i].LastMessage != nil && roomsDetails[j].LastMessage != nil {
+	// 		return roomsDetails[i].LastMessage.SendAt < roomsDetails[j].LastMessage.SendAt
+	// 	}
+	// 	return false
+	// })
 
 	return roomsDetails, nil
 }

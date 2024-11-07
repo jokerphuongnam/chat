@@ -7,6 +7,10 @@ WORKDIR /app
 # Copy the go mod and sum files
 COPY go.mod go.sum ./
 
+# Copy the config file
+COPY config/config.yaml /app/config/config.yaml
+COPY internal/logs/chat.log /app/internal/logs/chat.log
+
 # Download the dependencies
 RUN go mod download
 
@@ -18,6 +22,9 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main
 
 # Stage 2: Run
 FROM alpine:latest
+
+# Install curl
+RUN apk --no-cache add curl
 
 # Set the working directory in the new stage
 WORKDIR /app

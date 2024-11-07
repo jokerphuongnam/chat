@@ -213,12 +213,6 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.Content(); ok {
 		_spec.SetField(message.FieldContent, field.TypeString, value)
 	}
-	if value, ok := mu.mutation.IDRoom(); ok {
-		_spec.SetField(message.FieldIDRoom, field.TypeUUID, value)
-	}
-	if value, ok := mu.mutation.IDUserSend(); ok {
-		_spec.SetField(message.FieldIDUserSend, field.TypeUUID, value)
-	}
 	if mu.mutation.RoomsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -509,12 +503,6 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 	}
 	if value, ok := muo.mutation.Content(); ok {
 		_spec.SetField(message.FieldContent, field.TypeString, value)
-	}
-	if value, ok := muo.mutation.IDRoom(); ok {
-		_spec.SetField(message.FieldIDRoom, field.TypeUUID, value)
-	}
-	if value, ok := muo.mutation.IDUserSend(); ok {
-		_spec.SetField(message.FieldIDUserSend, field.TypeUUID, value)
 	}
 	if muo.mutation.RoomsCleared() {
 		edge := &sqlgraph.EdgeSpec{

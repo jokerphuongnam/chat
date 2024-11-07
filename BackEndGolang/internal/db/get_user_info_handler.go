@@ -1,7 +1,6 @@
 package database
 
 import (
-	"chat-backend/internal/ent"
 	"chat-backend/internal/ent/user"
 	"context"
 
@@ -14,8 +13,8 @@ type GetUserInfoResponse struct {
 	AvatarURL string    `json:"avatar_url"`
 }
 
-func GetUserInfoHandler(client *ent.Client, userID uuid.UUID) (*GetUserInfoResponse, error) {
-	user, err := client.User.Query().Where(user.IDEQ(userID)).Only(context.Background())
+func (db *Database) GetUserInfoHandler(userID uuid.UUID) (*GetUserInfoResponse, error) {
+	user, err := db.Client.User.Query().Where(user.IDEQ(userID)).Only(context.Background())
 	if err != nil {
 		return nil, err
 	}

@@ -27,26 +27,6 @@ func (au *AuthorizeUpdate) Where(ps ...predicate.Authorize) *AuthorizeUpdate {
 	return au
 }
 
-// SetJwtToken sets the "jwt_token" field.
-func (au *AuthorizeUpdate) SetJwtToken(s string) *AuthorizeUpdate {
-	au.mutation.SetJwtToken(s)
-	return au
-}
-
-// SetNillableJwtToken sets the "jwt_token" field if the given value is not nil.
-func (au *AuthorizeUpdate) SetNillableJwtToken(s *string) *AuthorizeUpdate {
-	if s != nil {
-		au.SetJwtToken(*s)
-	}
-	return au
-}
-
-// ClearJwtToken clears the value of the "jwt_token" field.
-func (au *AuthorizeUpdate) ClearJwtToken() *AuthorizeUpdate {
-	au.mutation.ClearJwtToken()
-	return au
-}
-
 // SetToken sets the "token" field.
 func (au *AuthorizeUpdate) SetToken(s string) *AuthorizeUpdate {
 	au.mutation.SetToken(s)
@@ -95,11 +75,6 @@ func (au *AuthorizeUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (au *AuthorizeUpdate) check() error {
-	if v, ok := au.mutation.JwtToken(); ok {
-		if err := authorize.JwtTokenValidator(v); err != nil {
-			return &ValidationError{Name: "jwt_token", err: fmt.Errorf(`ent: validator failed for field "Authorize.jwt_token": %w`, err)}
-		}
-	}
 	if v, ok := au.mutation.Token(); ok {
 		if err := authorize.TokenValidator(v); err != nil {
 			return &ValidationError{Name: "token", err: fmt.Errorf(`ent: validator failed for field "Authorize.token": %w`, err)}
@@ -119,12 +94,6 @@ func (au *AuthorizeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := au.mutation.JwtToken(); ok {
-		_spec.SetField(authorize.FieldJwtToken, field.TypeString, value)
-	}
-	if au.mutation.JwtTokenCleared() {
-		_spec.ClearField(authorize.FieldJwtToken, field.TypeString)
 	}
 	if value, ok := au.mutation.Token(); ok {
 		_spec.SetField(authorize.FieldToken, field.TypeString, value)
@@ -147,26 +116,6 @@ type AuthorizeUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *AuthorizeMutation
-}
-
-// SetJwtToken sets the "jwt_token" field.
-func (auo *AuthorizeUpdateOne) SetJwtToken(s string) *AuthorizeUpdateOne {
-	auo.mutation.SetJwtToken(s)
-	return auo
-}
-
-// SetNillableJwtToken sets the "jwt_token" field if the given value is not nil.
-func (auo *AuthorizeUpdateOne) SetNillableJwtToken(s *string) *AuthorizeUpdateOne {
-	if s != nil {
-		auo.SetJwtToken(*s)
-	}
-	return auo
-}
-
-// ClearJwtToken clears the value of the "jwt_token" field.
-func (auo *AuthorizeUpdateOne) ClearJwtToken() *AuthorizeUpdateOne {
-	auo.mutation.ClearJwtToken()
-	return auo
 }
 
 // SetToken sets the "token" field.
@@ -230,11 +179,6 @@ func (auo *AuthorizeUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (auo *AuthorizeUpdateOne) check() error {
-	if v, ok := auo.mutation.JwtToken(); ok {
-		if err := authorize.JwtTokenValidator(v); err != nil {
-			return &ValidationError{Name: "jwt_token", err: fmt.Errorf(`ent: validator failed for field "Authorize.jwt_token": %w`, err)}
-		}
-	}
 	if v, ok := auo.mutation.Token(); ok {
 		if err := authorize.TokenValidator(v); err != nil {
 			return &ValidationError{Name: "token", err: fmt.Errorf(`ent: validator failed for field "Authorize.token": %w`, err)}
@@ -271,12 +215,6 @@ func (auo *AuthorizeUpdateOne) sqlSave(ctx context.Context) (_node *Authorize, e
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := auo.mutation.JwtToken(); ok {
-		_spec.SetField(authorize.FieldJwtToken, field.TypeString, value)
-	}
-	if auo.mutation.JwtTokenCleared() {
-		_spec.ClearField(authorize.FieldJwtToken, field.TypeString)
 	}
 	if value, ok := auo.mutation.Token(); ok {
 		_spec.SetField(authorize.FieldToken, field.TypeString, value)

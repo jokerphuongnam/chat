@@ -1,40 +1,66 @@
-version: '3.8'
-
 services:
+  db:
+    container_name: chat-db
+    image: mysql:8.0
+    platform: linux/amd64
+    restart: always
+    networks:
+      - app-networks
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306" # Exposes MySQL on port 3306
+
+  redis:
+    container_name: chat-redis
+    image: redis:latest
+    restart: always
+    networks:
+      - app-networks
+    ports:
+      - "6380:6379" # Exposes Redis on port 6379
+
   backend:
+    image: chat-backend
+    restart: always
     container_name: chat-backend
+    volumes:
+      - ./BackEndGolang/config:/app/config
+      - ./BackEndGolang/internal/logs:/app/internal/logs 
     build:
       context: ./BackEndGolang
       dockerfile: Dockerfile
-    ports:
-      - "3031:3031" # Exposes the backend service on port 3031
     depends_on:
       - db
+    networks:
+      - app-networks
     env_file:
       - ./BackEndGolang/.env
     environment:
-      MYSQL_DATABASE: chat
-      MYSQL_ROOT_HOST: localhost
+      MYSQL_ROOT_HOST: db
       MYSQL_USERNAME: root
       MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: chat
+      SERVER_PORT: 3031
+      SERVER_HOST: 0.0.0.0
+      SECRET_KEY: jaEBg95cX-WF0MBYymV8zf7KQDOTY9gz49BCUcasQPY=
+      REDIS_ADDR: chat-redis:6379
+    ports:
+      - "3031:3031" # Exposes the backend service on port 3031
 
   frontend:
     container_name: chat-frontend
     build:
       context: ./FrontEndReactJSTypeScript
       dockerfile: Dockerfile
+    networks:
+      - app-networks
     ports:
       - "3000:3000" # Exposes the frontend service on port 3000
 
-  db:
-    container_name: chat-db
-    image: mysql:8.0
-    platform: linux/amd64
-    restart: always
-    ports:
-      - "3306:3306" # Exposes MySQL on port 3306
-    volumes:
-      - mysql_data:/var/lib/mysql
-
 volumes:
   mysql_data:
+
+networks:
+  app-networks:
+    driver: bridge

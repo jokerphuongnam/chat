@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Button, Form } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../../../styles/globals.css'
 import './LoginTab.css'
 import LoginService from '../../../services/LoginService';
 import LoadingComponent from '../../../components/Loading/LoadingComponent';
 import isSuccessfulResponse from '../../../utils/HttpUtils';
-import { useNavigate } from 'react-router-dom';
 
 const LoginTab: React.FC = () => {
     const [isLoading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ const LoginTab: React.FC = () => {
             let response = await LoginService(username, password);
             if (isSuccessfulResponse(response.code)) {
                 localStorage.setItem('token', response.data.token);
-                navigate('/');
+                window.location.reload();
                 console.log('Login successful', response);
             } else {
                 setError(response.message);

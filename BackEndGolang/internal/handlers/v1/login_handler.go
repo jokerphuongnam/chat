@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	database "chat-backend/internal/db"
-	"chat-backend/internal/ent"
+	"chat-backend/internal/logs"
+	"chat-backend/internal/utils"
 	"fmt"
 	"net/http"
 
@@ -14,7 +14,9 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func LoginHandler(c *gin.Context, dbClient *ent.Client, secretKey string) {
+func (handler *Handler) LoginHandler(c *gin.Context) {
+	logs.Log.Debug("Login start...")
+
 	var request LoginRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -25,9 +27,9 @@ func LoginHandler(c *gin.Context, dbClient *ent.Client, secretKey string) {
 		return
 	}
 
-	response, err := database.LoginHandler(dbClient, secretKey, request.Username, request.Password)
+	response, err := handler.Database.LoginHandler(request.Username, request.Password)
 	if err != nil {
-		fmt.Printf("%s", err.Error())
+		logs.Log.Errorf("database error: %v", err.Error())
 		c.JSON(http.StatusInternalServerError, ResponseMessage{
 			Code:    http.StatusInternalServerError,
 			Message: "Invalid username or password",
@@ -35,6 +37,31 @@ func LoginHandler(c *gin.Context, dbClient *ent.Client, secretKey string) {
 		return
 	}
 
+	// Generate a JWT token for the user and update the authorize record with the token
+	jwtToken, err := utils.GenerateJWT(response.ID.String(), handler.Cache.SecretKey)
+	if err != nil {
+		logs.Log.Error("failed to generate JWT token: ", err.Error())
+		c.JSON(http.StatusInternalServerError, ResponseMessage{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to generate JWT token" + err.Error(),
+		})
+		return
+	}
+
+	// Cache the JWT token
+	err = handler.Cache.CacheJWTToken(response.ID.String(), jwtToken)
+	if err != nil {
+		logs.Log.Error("failed to cache JWT token: ", err.Error())
+		c.JSON(http.StatusInternalServerError, ResponseMessage{
+			Code:    http.StatusInternalServerError,
+			Message: fmt.Sprintf("Failed to cache JWT token: %v", err),
+		})
+		return
+	}
+
+	response.JwtToken = jwtToken
+
+	logs.Log.Debug("Login success")
 	c.JSON(http.StatusOK, ResponseMessage{
 		Code:    http.StatusOK,
 		Message: "login successfully",

@@ -15,7 +15,6 @@ type Authorize struct {
 func (Authorize) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Unique().Immutable(),
-		field.String("jwt_token").MaxLen(255).Optional(),
 		field.String("token").NotEmpty().Unique(),
 	}
 }

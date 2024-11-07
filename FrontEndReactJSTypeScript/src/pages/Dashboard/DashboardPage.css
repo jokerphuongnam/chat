@@ -8,17 +8,17 @@
     height: 100%;
 }
 
-.dashboard-left {
+.dashboard-element {
     height: 90%;
     border-radius: 8px;
     background-color: white;
+}
+
+.dashboard-left {
     margin-left: auto;
 }
 
 .dashboard-right {
-    height: 90%;
-    border-radius: 8px;
-    background-color: white;
     margin-right: auto;
 }
 

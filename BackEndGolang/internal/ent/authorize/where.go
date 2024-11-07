@@ -54,89 +54,9 @@ func IDLTE(id uuid.UUID) predicate.Authorize {
 	return predicate.Authorize(sql.FieldLTE(FieldID, id))
 }
 
-// JwtToken applies equality check predicate on the "jwt_token" field. It's identical to JwtTokenEQ.
-func JwtToken(v string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldEQ(FieldJwtToken, v))
-}
-
 // Token applies equality check predicate on the "token" field. It's identical to TokenEQ.
 func Token(v string) predicate.Authorize {
 	return predicate.Authorize(sql.FieldEQ(FieldToken, v))
-}
-
-// JwtTokenEQ applies the EQ predicate on the "jwt_token" field.
-func JwtTokenEQ(v string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldEQ(FieldJwtToken, v))
-}
-
-// JwtTokenNEQ applies the NEQ predicate on the "jwt_token" field.
-func JwtTokenNEQ(v string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldNEQ(FieldJwtToken, v))
-}
-
-// JwtTokenIn applies the In predicate on the "jwt_token" field.
-func JwtTokenIn(vs ...string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldIn(FieldJwtToken, vs...))
-}
-
-// JwtTokenNotIn applies the NotIn predicate on the "jwt_token" field.
-func JwtTokenNotIn(vs ...string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldNotIn(FieldJwtToken, vs...))
-}
-
-// JwtTokenGT applies the GT predicate on the "jwt_token" field.
-func JwtTokenGT(v string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldGT(FieldJwtToken, v))
-}
-
-// JwtTokenGTE applies the GTE predicate on the "jwt_token" field.
-func JwtTokenGTE(v string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldGTE(FieldJwtToken, v))
-}
-
-// JwtTokenLT applies the LT predicate on the "jwt_token" field.
-func JwtTokenLT(v string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldLT(FieldJwtToken, v))
-}
-
-// JwtTokenLTE applies the LTE predicate on the "jwt_token" field.
-func JwtTokenLTE(v string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldLTE(FieldJwtToken, v))
-}
-
-// JwtTokenContains applies the Contains predicate on the "jwt_token" field.
-func JwtTokenContains(v string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldContains(FieldJwtToken, v))
-}
-
-// JwtTokenHasPrefix applies the HasPrefix predicate on the "jwt_token" field.
-func JwtTokenHasPrefix(v string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldHasPrefix(FieldJwtToken, v))
-}
-
-// JwtTokenHasSuffix applies the HasSuffix predicate on the "jwt_token" field.
-func JwtTokenHasSuffix(v string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldHasSuffix(FieldJwtToken, v))
-}
-
-// JwtTokenIsNil applies the IsNil predicate on the "jwt_token" field.
-func JwtTokenIsNil() predicate.Authorize {
-	return predicate.Authorize(sql.FieldIsNull(FieldJwtToken))
-}
-
-// JwtTokenNotNil applies the NotNil predicate on the "jwt_token" field.
-func JwtTokenNotNil() predicate.Authorize {
-	return predicate.Authorize(sql.FieldNotNull(FieldJwtToken))
-}
-
-// JwtTokenEqualFold applies the EqualFold predicate on the "jwt_token" field.
-func JwtTokenEqualFold(v string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldEqualFold(FieldJwtToken, v))
-}
-
-// JwtTokenContainsFold applies the ContainsFold predicate on the "jwt_token" field.
-func JwtTokenContainsFold(v string) predicate.Authorize {
-	return predicate.Authorize(sql.FieldContainsFold(FieldJwtToken, v))
 }
 
 // TokenEQ applies the EQ predicate on the "token" field.

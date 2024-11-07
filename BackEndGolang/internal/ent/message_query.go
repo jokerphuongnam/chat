@@ -27,7 +27,6 @@ type MessageQuery struct {
 	predicates []predicate.Message
 	withRooms  *RoomQuery
 	withUsers  *UserQuery
-	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -407,19 +406,12 @@ func (mq *MessageQuery) prepareQuery(ctx context.Context) error {
 func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Message, error) {
 	var (
 		nodes       = []*Message{}
-		withFKs     = mq.withFKs
 		_spec       = mq.querySpec()
 		loadedTypes = [2]bool{
 			mq.withRooms != nil,
 			mq.withUsers != nil,
 		}
 	)
-	if mq.withRooms != nil || mq.withUsers != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, message.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Message).scanValues(nil, columns)
 	}
@@ -457,10 +449,7 @@ func (mq *MessageQuery) loadRooms(ctx context.Context, query *RoomQuery, nodes [
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Message)
 	for i := range nodes {
-		if nodes[i].room_messages == nil {
-			continue
-		}
-		fk := *nodes[i].room_messages
+		fk := nodes[i].IDRoom
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -477,7 +466,7 @@ func (mq *MessageQuery) loadRooms(ctx context.Context, query *RoomQuery, nodes [
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "room_messages" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "id_room" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -489,10 +478,7 @@ func (mq *MessageQuery) loadUsers(ctx context.Context, query *UserQuery, nodes [
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Message)
 	for i := range nodes {
-		if nodes[i].user_messages == nil {
-			continue
-		}
-		fk := *nodes[i].user_messages
+		fk := nodes[i].IDUserSend
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -509,7 +495,7 @@ func (mq *MessageQuery) loadUsers(ctx context.Context, query *UserQuery, nodes [
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_messages" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "id_user_send" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -542,6 +528,12 @@ func (mq *MessageQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != message.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if mq.withRooms != nil {
+			_spec.Node.AddColumnOnce(message.FieldIDRoom)
+		}
+		if mq.withUsers != nil {
+			_spec.Node.AddColumnOnce(message.FieldIDUserSend)
 		}
 	}
 	if ps := mq.predicates; len(ps) > 0 {

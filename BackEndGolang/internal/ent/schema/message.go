@@ -27,7 +27,7 @@ func (Message) Fields() []ent.Field {
 // Edges of the Message.
 func (Message) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("rooms", Room.Type).Ref("messages").Unique().Required(),
-		edge.From("users", User.Type).Ref("messages").Unique().Required(),
+		edge.From("rooms", Room.Type).Ref("messages").Field("id_room").Unique().Unique().Required(),
+		edge.From("users", User.Type).Ref("messages").Field("id_user_send").Unique().Required(),
 	}
 }

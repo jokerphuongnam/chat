@@ -37,14 +37,14 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "room" package.
 	RoomsInverseTable = "rooms"
 	// RoomsColumn is the table column denoting the rooms relation/edge.
-	RoomsColumn = "room_messages"
+	RoomsColumn = "id_room"
 	// UsersTable is the table that holds the users relation/edge.
 	UsersTable = "messages"
 	// UsersInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UsersInverseTable = "users"
 	// UsersColumn is the table column denoting the users relation/edge.
-	UsersColumn = "user_messages"
+	UsersColumn = "id_user_send"
 )
 
 // Columns holds all SQL columns for message fields.
@@ -57,22 +57,10 @@ var Columns = []string{
 	FieldIDUserSend,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the "messages"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"room_messages",
-	"user_messages",
-}
-
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}

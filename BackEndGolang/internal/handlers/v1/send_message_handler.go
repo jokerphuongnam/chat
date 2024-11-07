@@ -1,9 +1,6 @@
 package handlers
 
 import (
-	database "chat-backend/internal/db"
-	"chat-backend/internal/ent"
-	"chat-backend/internal/services"
 	"chat-backend/internal/utils"
 	"net/http"
 
@@ -17,9 +14,19 @@ type SendMessageRequest struct {
 	MessageType string `json:"message_type"`
 }
 
-func SendMessageHandler(c *gin.Context, dbClient *ent.Client, cs services.ChatService, secretKey string) {
+func (handler *Handler) SendMessageHandler(c *gin.Context) {
+	// Get jwt token from headers
+	jwtToken, err := utils.GetJWTTokenFromHeader(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, ResponseMessage{
+			Code:    http.StatusUnauthorized,
+			Message: "Unauthorized: Missing or invalid Bearer token",
+		})
+		return
+	}
+
 	// Get user ID from the header.
-	userID, err := utils.GetUserIdFromHeader(c, secretKey)
+	userID, err := handler.Cache.GetUserID(jwtToken)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ResponseMessage{
 			Code:    http.StatusBadRequest,
@@ -37,14 +44,6 @@ func SendMessageHandler(c *gin.Context, dbClient *ent.Client, cs services.ChatSe
 		return
 	}
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ResponseMessage{
-			Code:    http.StatusBadRequest,
-			Message: "Invalid request payload",
-		})
-		return
-	}
-
 	toID, err := utils.StringToUUID(req.To)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ResponseMessage{
@@ -54,12 +53,13 @@ func SendMessageHandler(c *gin.Context, dbClient *ent.Client, cs services.ChatSe
 		return
 	}
 
-	toUserId, roomUsers, err := database.CheckUserInRoomHandler(dbClient, toID)
+	toUserId, roomUsers, err := handler.Database.CheckUserInRoomHandler(toID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ResponseMessage{
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 		})
+		return
 	}
 
 	// Parse the message type.
@@ -69,10 +69,11 @@ func SendMessageHandler(c *gin.Context, dbClient *ent.Client, cs services.ChatSe
 			Code:    http.StatusBadRequest,
 			Message: err.Error(),
 		})
+		return
 	}
-	if toUserId == nil {
+	if toUserId != nil {
 		// Save the message to the database.
-		newMessage, err := database.SendMessageToNewUserHandler(dbClient, userID, toID, req.Message, messageType)
+		newMessage, err := handler.Database.SendMessageToNewUserHandler(userID, toID, req.Message, messageType)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, ResponseMessage{
 				Code:    http.StatusInternalServerError,
@@ -82,20 +83,17 @@ func SendMessageHandler(c *gin.Context, dbClient *ent.Client, cs services.ChatSe
 		}
 
 		// Send the message to the user.
-		cs.SendMessage(userID, req.Message, req.MessageType, newMessage.SendTime, newMessage.Room, func() []uuid.UUID {
-			return []uuid.UUID{*toUserId}
-		})
+		(*handler.ChatService).SendMessage(jwtToken, userID, req.Message, req.MessageType, newMessage.SendTime, newMessage.Room, []uuid.UUID{*toUserId})
 
 		c.JSON(http.StatusCreated, ResponseMessage{
 			Code:    http.StatusCreated,
 			Message: "Message sent successfully",
 			Data:    newMessage,
 		})
-
 		return
 	} else if roomUsers != nil {
 		// Save the message to the database.
-		newMessage, err := database.SendMessageToRoomHandler(dbClient, userID, roomUsers.RoomId, req.Message, messageType)
+		newMessage, err := handler.Database.SendMessageToRoomHandler(userID, roomUsers.RoomId, req.Message, messageType)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, ResponseMessage{
 				Code:    http.StatusInternalServerError,
@@ -105,16 +103,13 @@ func SendMessageHandler(c *gin.Context, dbClient *ent.Client, cs services.ChatSe
 		}
 
 		// Send the message to all the users in the room.
-		cs.SendMessage(userID, req.Message, req.MessageType, newMessage.SendTime, newMessage.Room, func() []uuid.UUID {
-			return roomUsers.UserIds
-		})
+		(*handler.ChatService).SendMessage(jwtToken, userID, req.Message, req.MessageType, newMessage.SendTime, newMessage.Room, roomUsers.UserIds)
 
 		c.JSON(http.StatusCreated, ResponseMessage{
 			Code:    http.StatusCreated,
 			Message: "Message sent successfully",
 			Data:    newMessage,
 		})
-
 		return
 	}
 

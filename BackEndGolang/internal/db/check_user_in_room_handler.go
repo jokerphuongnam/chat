@@ -1,7 +1,6 @@
 package database
 
 import (
-	"chat-backend/internal/ent"
 	"context"
 	"fmt"
 
@@ -13,13 +12,8 @@ type RoomUsers struct {
 	UserIds []uuid.UUID
 }
 
-func CheckUserInRoomHandler(client *ent.Client, id uuid.UUID) (*uuid.UUID, *RoomUsers, error) {
-	user, err := client.User.Get(context.Background(), id)
-	if err == nil {
-		return &user.ID, nil, nil
-	}
-
-	room, err := client.Room.Get(context.Background(), id)
+func (db *Database) CheckUserInRoomHandler(id uuid.UUID) (*uuid.UUID, *RoomUsers, error) {
+	room, err := db.Client.Room.Get(context.Background(), id)
 	if err == nil {
 		userIDs := make([]uuid.UUID, 0)
 
@@ -33,6 +27,11 @@ func CheckUserInRoomHandler(client *ent.Client, id uuid.UUID) (*uuid.UUID, *Room
 		}
 
 		return nil, &RoomUsers{RoomId: room.ID, UserIds: userIDs}, nil
+	}
+
+	user, err := db.Client.User.Get(context.Background(), id)
+	if err == nil {
+		return &user.ID, nil, nil
 	}
 
 	return nil, nil, fmt.Errorf("could not retrieve user rooms: %w", err)

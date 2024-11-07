@@ -1,7 +1,6 @@
 package database
 
 import (
-	"chat-backend/internal/ent"
 	"chat-backend/internal/ent/user"
 	"context"
 	"fmt"
@@ -14,9 +13,9 @@ type FindUsersByNameResponse struct {
 	AvatarURL string `json:"avatar_url"`
 }
 
-func FindUsersByNameHandler(client *ent.Client, term string) ([]FindUsersByNameResponse, error) {
+func (db *Database) FindUsersByNameHandler(term string) ([]FindUsersByNameResponse, error) {
 	words := strings.Fields(term)
-	query := client.User.Query()
+	query := db.Client.User.Query()
 	for _, word := range words {
 		query = query.Where(user.NameContainsFold(word))
 	}

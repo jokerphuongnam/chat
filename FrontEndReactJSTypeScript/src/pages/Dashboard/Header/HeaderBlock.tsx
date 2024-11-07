@@ -8,7 +8,6 @@ interface HeaderBlockProps {
 }
 
 const HeaderBlock: React.FC<HeaderBlockProps> = ({ avatarUrl, name }) => {
-    console.log('HeaderBlock props:', avatarUrl, name);
     return (
         <>
             <Stack className='header-container' direction='horizontal'>

@@ -220,26 +220,6 @@ func IDRoomNotIn(vs ...uuid.UUID) predicate.Message {
 	return predicate.Message(sql.FieldNotIn(FieldIDRoom, vs...))
 }
 
-// IDRoomGT applies the GT predicate on the "id_room" field.
-func IDRoomGT(v uuid.UUID) predicate.Message {
-	return predicate.Message(sql.FieldGT(FieldIDRoom, v))
-}
-
-// IDRoomGTE applies the GTE predicate on the "id_room" field.
-func IDRoomGTE(v uuid.UUID) predicate.Message {
-	return predicate.Message(sql.FieldGTE(FieldIDRoom, v))
-}
-
-// IDRoomLT applies the LT predicate on the "id_room" field.
-func IDRoomLT(v uuid.UUID) predicate.Message {
-	return predicate.Message(sql.FieldLT(FieldIDRoom, v))
-}
-
-// IDRoomLTE applies the LTE predicate on the "id_room" field.
-func IDRoomLTE(v uuid.UUID) predicate.Message {
-	return predicate.Message(sql.FieldLTE(FieldIDRoom, v))
-}
-
 // IDUserSendEQ applies the EQ predicate on the "id_user_send" field.
 func IDUserSendEQ(v uuid.UUID) predicate.Message {
 	return predicate.Message(sql.FieldEQ(FieldIDUserSend, v))
@@ -258,26 +238,6 @@ func IDUserSendIn(vs ...uuid.UUID) predicate.Message {
 // IDUserSendNotIn applies the NotIn predicate on the "id_user_send" field.
 func IDUserSendNotIn(vs ...uuid.UUID) predicate.Message {
 	return predicate.Message(sql.FieldNotIn(FieldIDUserSend, vs...))
-}
-
-// IDUserSendGT applies the GT predicate on the "id_user_send" field.
-func IDUserSendGT(v uuid.UUID) predicate.Message {
-	return predicate.Message(sql.FieldGT(FieldIDUserSend, v))
-}
-
-// IDUserSendGTE applies the GTE predicate on the "id_user_send" field.
-func IDUserSendGTE(v uuid.UUID) predicate.Message {
-	return predicate.Message(sql.FieldGTE(FieldIDUserSend, v))
-}
-
-// IDUserSendLT applies the LT predicate on the "id_user_send" field.
-func IDUserSendLT(v uuid.UUID) predicate.Message {
-	return predicate.Message(sql.FieldLT(FieldIDUserSend, v))
-}
-
-// IDUserSendLTE applies the LTE predicate on the "id_user_send" field.
-func IDUserSendLTE(v uuid.UUID) predicate.Message {
-	return predicate.Message(sql.FieldLTE(FieldIDUserSend, v))
 }
 
 // HasRooms applies the HasEdge predicate on the "rooms" edge.

@@ -45,7 +45,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "message" package.
 	MessagesInverseTable = "messages"
 	// MessagesColumn is the table column denoting the messages relation/edge.
-	MessagesColumn = "room_messages"
+	MessagesColumn = "id_room"
 )
 
 // Columns holds all SQL columns for room fields.

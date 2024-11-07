@@ -560,7 +560,9 @@ func (rq *RoomQuery) loadMessages(ctx context.Context, query *MessageQuery, node
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(message.FieldIDRoom)
+	}
 	query.Where(predicate.Message(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(room.MessagesColumn), fks...))
 	}))
@@ -569,13 +571,10 @@ func (rq *RoomQuery) loadMessages(ctx context.Context, query *MessageQuery, node
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.room_messages
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "room_messages" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.IDRoom
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "room_messages" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "id_room" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

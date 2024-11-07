@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	database "chat-backend/internal/db"
-	"chat-backend/internal/ent"
+	"chat-backend/internal/utils"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +14,7 @@ type RegisterRequest struct {
 	Name     string `json:"name" binding:"required"`
 }
 
-func RegisterHandler(c *gin.Context, dbClient *ent.Client, secretKey string) {
+func (handler *Handler) RegisterHandler(c *gin.Context) {
 	var req RegisterRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -26,7 +26,7 @@ func RegisterHandler(c *gin.Context, dbClient *ent.Client, secretKey string) {
 	}
 
 	// Create a new user in the database
-	response, err := database.RegisterHandler(dbClient, secretKey, req.Username, req.Password, req.Name)
+	response, err := handler.Database.RegisterHandler(req.Username, req.Password, req.Name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ResponseMessage{
 			Code:    http.StatusInternalServerError,
@@ -34,6 +34,28 @@ func RegisterHandler(c *gin.Context, dbClient *ent.Client, secretKey string) {
 		})
 		return
 	}
+
+	// Generate a JWT token for the user and update the authorize record with the token
+	jwtToken, err := utils.GenerateJWT(response.ID.String(), handler.Cache.SecretKey)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ResponseMessage{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to generate JWT token" + err.Error(),
+		})
+		return
+	}
+
+	// Cache the JWT token
+	err = handler.Cache.CacheJWTToken(response.ID.String(), jwtToken)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ResponseMessage{
+			Code:    http.StatusInternalServerError,
+			Message: fmt.Sprintf("Failed to cache JWT token: %v", err),
+		})
+		return
+	}
+
+	response.JwtToken = jwtToken
 
 	c.JSON(http.StatusCreated, ResponseMessage{
 		Code:    http.StatusCreated,

@@ -20,20 +20,6 @@ type AuthorizeCreate struct {
 	hooks    []Hook
 }
 
-// SetJwtToken sets the "jwt_token" field.
-func (ac *AuthorizeCreate) SetJwtToken(s string) *AuthorizeCreate {
-	ac.mutation.SetJwtToken(s)
-	return ac
-}
-
-// SetNillableJwtToken sets the "jwt_token" field if the given value is not nil.
-func (ac *AuthorizeCreate) SetNillableJwtToken(s *string) *AuthorizeCreate {
-	if s != nil {
-		ac.SetJwtToken(*s)
-	}
-	return ac
-}
-
 // SetToken sets the "token" field.
 func (ac *AuthorizeCreate) SetToken(s string) *AuthorizeCreate {
 	ac.mutation.SetToken(s)
@@ -97,11 +83,6 @@ func (ac *AuthorizeCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (ac *AuthorizeCreate) check() error {
-	if v, ok := ac.mutation.JwtToken(); ok {
-		if err := authorize.JwtTokenValidator(v); err != nil {
-			return &ValidationError{Name: "jwt_token", err: fmt.Errorf(`ent: validator failed for field "Authorize.jwt_token": %w`, err)}
-		}
-	}
 	if _, ok := ac.mutation.Token(); !ok {
 		return &ValidationError{Name: "token", err: errors.New(`ent: missing required field "Authorize.token"`)}
 	}
@@ -144,10 +125,6 @@ func (ac *AuthorizeCreate) createSpec() (*Authorize, *sqlgraph.CreateSpec) {
 	if id, ok := ac.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
-	}
-	if value, ok := ac.mutation.JwtToken(); ok {
-		_spec.SetField(authorize.FieldJwtToken, field.TypeString, value)
-		_node.JwtToken = value
 	}
 	if value, ok := ac.mutation.Token(); ok {
 		_spec.SetField(authorize.FieldToken, field.TypeString, value)
