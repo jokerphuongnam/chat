@@ -52,7 +52,6 @@ func (handler *Handler) ChatHandler(c *gin.Context) {
 		})
 		return
 	}
-
 	defer (*handler.ChatService).DisconnectUser(jwtToken)
 
 	// Listen for incoming messages from the client and broadcast them to other connected users.
@@ -69,7 +68,7 @@ func (handler *Handler) ChatHandler(c *gin.Context) {
 		if messageType == websocket.TextMessage {
 			var req *sendMessageRequest
 			if err := json.Unmarshal(message, &req); err != nil {
-			(*handler.ChatService).SendErrorMessageByConnection(conn, fmt.Sprintf("Read error from user %s: %v\n", userID, err), http.StatusInternalServerError)
+				(*handler.ChatService).SendErrorMessageByConnection(conn, fmt.Sprintf("Read error from user %s: %v\n", userID, err), http.StatusInternalServerError)
 				break
 			}
 
@@ -111,7 +110,15 @@ func (handler *Handler) sendMessageHandler(conn *websocket.Conn, jwtToken string
 		}
 
 		// Send the message to the user.
-		(*handler.ChatService).SendMessage(jwtToken, userID, req.Message, req.MessageType, newMessage.SendTime, newMessage.Room, []uuid.UUID{*toUserId})
+		(*handler.ChatService).SendMessage(
+			conn,
+			jwtToken,
+			userID,
+			req.Message,
+			req.MessageType,
+			newMessage.SendTime,
+			newMessage.Room,
+			[]uuid.UUID{*toUserId})
 		return
 	} else if roomUsers != nil {
 		newMessage, err := handler.Database.SendMessageToRoomHandler(userID, roomUsers.RoomId, req.Message, messageType)
@@ -121,9 +128,18 @@ func (handler *Handler) sendMessageHandler(conn *websocket.Conn, jwtToken string
 		}
 
 		// Send the message to all the users in the room.
-		(*handler.ChatService).SendMessage(jwtToken, userID, req.Message, req.MessageType, newMessage.SendTime, newMessage.Room, roomUsers.UserIds)
+		(*handler.ChatService).SendMessage(
+			conn,
+			jwtToken,
+			userID,
+			req.Message,
+			req.MessageType,
+			newMessage.SendTime,
+			newMessage.Room,
+			roomUsers.UserIds,
+		)
 		return
 	}
 
-	(*handler.ChatService).SendErrorMessageByConnection(conn, fmt.Sprintf("User not found in the room:"), http.StatusInternalServerError)
+	(*handler.ChatService).SendErrorMessageByConnection(conn, fmt.Sprintf("user not found in the room:"), http.StatusInternalServerError)
 }

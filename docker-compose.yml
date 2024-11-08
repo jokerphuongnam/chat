@@ -19,11 +19,37 @@ services:
       - app-networks
     ports:
       - "6380:6379" # Exposes Redis on port 6379
+  
+  envoy:
+    image: envoyproxy/envoy:v1.18.3
+    container_name: envoy
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
+    networks:
+      - app-networks
+    ports:
+      - "3030:3030"  # Expose Envoy on port 3030 for load balancing backend services
+    depends_on:
+      - backend-3301
+      - backend-3302
+      - backend-3303
 
-  backend:
+  nats-server:
+      image: nats
+      container_name: nats-server
+      networks:
+        - app-networks
+      ports:
+        - "4222:4222"
+      environment:
+        - NATS_SERVER_NAME=nats-server
+        - NATS_ADVERTISE=localhost:4222
+        - NATS_LISTEN=0.0.0.0:4222
+
+  backend-3301:
     image: chat-backend
     restart: always
-    container_name: chat-backend
+    container_name: chat-backend-3301
     volumes:
       - ./BackEndGolang/config:/app/config
       - ./BackEndGolang/internal/logs:/app/internal/logs 
@@ -45,8 +71,67 @@ services:
       SERVER_HOST: 0.0.0.0
       SECRET_KEY: jaEBg95cX-WF0MBYymV8zf7KQDOTY9gz49BCUcasQPY=
       REDIS_ADDR: chat-redis:6379
+      NATS_URL: nats://nats-server:4222
     ports:
       - "3031:3031" # Exposes the backend service on port 3031
+
+  backend-3302:
+    image: chat-backend
+    restart: always
+    container_name: chat-backend-3302
+    volumes:
+      - ./BackEndGolang/config:/app/config
+      - ./BackEndGolang/internal/logs:/app/internal/logs 
+    build:
+      context: ./BackEndGolang
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    networks:
+      - app-networks
+    env_file:
+      - ./BackEndGolang/.env
+    environment:
+      MYSQL_ROOT_HOST: db
+      MYSQL_USERNAME: root
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: chat
+      SERVER_PORT: 3032
+      SERVER_HOST: 0.0.0.0
+      SECRET_KEY: jaEBg95cX-WF0MBYymV8zf7KQDOTY9gz49BCUcasQPY=
+      REDIS_ADDR: chat-redis:6379
+      NATS_URL: nats://nats-server:4222
+    ports:
+      - "3032:3032" # Exposes the backend service on port 3031
+
+  backend-3303:
+    image: chat-backend
+    restart: always
+    container_name: chat-backend-3303
+    volumes:
+      - ./BackEndGolang/config:/app/config
+      - ./BackEndGolang/internal/logs:/app/internal/logs 
+    build:
+      context: ./BackEndGolang
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    networks:
+      - app-networks
+    env_file:
+      - ./BackEndGolang/.env
+    environment:
+      MYSQL_ROOT_HOST: db
+      MYSQL_USERNAME: root
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: chat
+      SERVER_PORT: 3033
+      SERVER_HOST: 0.0.0.0
+      SECRET_KEY: jaEBg95cX-WF0MBYymV8zf7KQDOTY9gz49BCUcasQPY=
+      REDIS_ADDR: chat-redis:6379
+      NATS_URL: nats://nats-server:4222
+    ports:
+      - "3033:3033" # Exposes the backend service on port 3031
 
   frontend:
     container_name: chat-frontend

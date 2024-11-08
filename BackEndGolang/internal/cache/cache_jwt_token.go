@@ -24,9 +24,7 @@ func (cache *Cache) CacheJWTToken(userID string, jwtToken string) error {
 		return fmt.Errorf("failed to cache JWT token: %v", err)
 	}
 
-	logs.Log.Debug("----------CacheJWTToken-------------")
-	logs.Log.Printf("- key: %v\n", redisKey)
-	logs.Log.Printf("  -- token: %v\n", jwtToken)
+	logs.Log.Printf("key: %v -- token: %v\n", redisKey, jwtToken)
 
 	// Add this token to the user's sorted set for cleanup purposes
 	expirationTimestamp := time.Now().Add(tokenExpiration).Unix()

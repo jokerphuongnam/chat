@@ -11,18 +11,27 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/nats-io/nats.go"
 	"github.com/spf13/cobra"
 )
 
 func Execute(config config.AppConfig) *gin.Engine {
+	nc, err := nats.Connect(config.Nats.Addr)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer nc.Close()
+
 	r := gin.Default()
 	databaseHandler, err := database.GetClient(config)
 	if err != nil {
 		fmt.Println(err)
 		return nil
 	}
-	chatService := services.NewChatService(config.Server.SecretKey)
+	chatService := services.NewChatService(config.Server.SecretKey, nc)
 	defer databaseHandler.Client.Close()
+
 	handler := &handlers.Handler{
 		ChatService: &chatService,
 		Database:    databaseHandler,

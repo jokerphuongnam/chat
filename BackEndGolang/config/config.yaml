@@ -16,3 +16,8 @@ server:
   idle_timeout: 180
 cache:
   addr: ${REDIS_ADDR}
+nats:
+  addr: ${NATS_URL}
+logging:
+  level: info
+  format: text

@@ -6,9 +6,16 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/nats-io/nats.go"
+)
+
+const (
+	natsTopic = "chat.messages.topic"
 )
 
 type ChatService interface {
@@ -19,14 +26,15 @@ type ChatService interface {
 	ConnectUser(userID uuid.UUID, token string, conn *websocket.Conn) error
 
 	// Disconnect a user and remove their WebSocket connection from the pool
-	DisconnectUser(token string) error
+	DisconnectUser(token string)
 
 	// Send a direct message from users to another
-	SendMessage(fromToken string, from uuid.UUID, content, messageType string, sendAt uint64, roomID uuid.UUID, toIds []uuid.UUID)
+	SendMessage(conn *websocket.Conn, fromToken string, from uuid.UUID, content, messageType string, sendAt uint64, roomID uuid.UUID, toIds []uuid.UUID)
 
 	// Send error message
 	SendErrorMessage(fromToken string, from uuid.UUID, message string, code int)
 
+	// Send error message by WebSocket connection
 	SendErrorMessageByConnection(conn *websocket.Conn, message string, code int)
 
 	// Broadcast a message to all active connections (optional, depending on requirements)
@@ -39,14 +47,16 @@ type chatService struct {
 	messageChan    chan *messageChan
 	disconnectChan chan string
 	secretKey      string
+	natsConn       *nats.Conn
+	mu             sync.Mutex
 }
 
 type messageChan struct {
-	message   responseMessage
-	roomID    uuid.UUID
-	toIDs     []uuid.UUID
-	from      uuid.UUID
-	fromToken string
+	Message   message     `json:"message"`
+	RoomID    uuid.UUID   `json:"room_id"`
+	ToIDs     []uuid.UUID `json:"to_ids"`
+	From      uuid.UUID   `json:"from"`
+	FromToken string      `json:"from_token"`
 }
 
 type responseMessage struct {
@@ -55,9 +65,11 @@ type responseMessage struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-func NewChatService(secretKey string) ChatService {
+func NewChatService(secretKey string, natsConn *nats.Conn) ChatService {
 	cs := &chatService{
 		secretKey:      secretKey,
+		natsConn:       natsConn,
+		mu:             sync.Mutex{},
 		connections:    make(map[uuid.UUID]map[string]*websocket.Conn),
 		messageChan:    make(chan *messageChan),
 		disconnectChan: make(chan string),
@@ -71,6 +83,7 @@ func NewChatService(secretKey string) ChatService {
 	}
 
 	go cs.handleChannels()
+	go cs.receivedMessageFromNats()
 	return cs
 }
 
@@ -84,11 +97,13 @@ func (cs *chatService) UpgradeConnection(w http.ResponseWriter, r *http.Request,
 }
 
 func (cs *chatService) ConnectUser(userID uuid.UUID, token string, conn *websocket.Conn) error {
-	logs.Log.Debugf("connecting user %v...\n", userID)
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+
 	// If the user is already connected, check for existing tokens
-	if tokenConnections, exists := cs.connections[userID]; exists {
+	if tokenListeners, exists := cs.connections[userID]; exists {
 		// Check if the token is already in the user's connection map
-		if _, tokenExists := tokenConnections[token]; tokenExists {
+		if _, tokenExists := tokenListeners[token]; tokenExists {
 			return errors.New("user already connected with the given token")
 		}
 	}
@@ -98,13 +113,13 @@ func (cs *chatService) ConnectUser(userID uuid.UUID, token string, conn *websock
 	}
 
 	cs.connections[userID][token] = conn
-	logs.Log.Debugf("user %v with token %v connected\n", userID, token)
+
+	logs.Log.Infof("user %v with token %v connected\n", userID, token)
 	return nil
 }
 
-func (cs *chatService) DisconnectUser(token string) error {
+func (cs *chatService) DisconnectUser(token string) {
 	cs.disconnectChan <- token
-	return nil
 }
 
 type message struct {
@@ -114,24 +129,8 @@ type message struct {
 	SendAt      uint64    `json:"sent_at"`
 }
 
-func (cs *chatService) SendMessage(fromToken string, from uuid.UUID, content, messageType string, sendAt uint64, roomID uuid.UUID, toIds []uuid.UUID) {
-	logs.Log.Debugf("Sending message from %v to room %v to users %v...\n", from, roomID, toIds)
-	cs.messageChan <- &messageChan{
-		message: responseMessage{
-			Code:    http.StatusOK,
-			Message: "Send Message successfully",
-			Data: message{
-				MessageType: messageType,
-				Content:     content,
-				SenderID:    from,
-				SendAt:      sendAt,
-			},
-		},
-		roomID:    roomID,
-		toIDs:     toIds,
-		from:      from,
-		fromToken: fromToken,
-	}
+func (cs *chatService) SendMessage(conn *websocket.Conn, fromToken string, from uuid.UUID, content, messageType string, sendAt uint64, roomID uuid.UUID, toIds []uuid.UUID) {
+	cs.sendMessageToNats(fromToken, from, content, messageType, sendAt, roomID, toIds)
 }
 
 func (cs *chatService) SendErrorMessage(fromToken string, from uuid.UUID, message string, code int) {
@@ -171,12 +170,14 @@ func (cs *chatService) handleChannels() {
 }
 
 func (cs *chatService) processMessage(msg *messageChan) {
-	for _, userID := range msg.toIDs {
+	currentHost, _ := os.Hostname()
+	logs.Log.Infof(fmt.Sprintf("ProcessMessage websocket send at host: %v from %v", currentHost, msg.From))
+
+	for _, userID := range msg.ToIDs {
 		if tokenConns, exists := cs.connections[userID]; exists {
-			logs.Log.Debugf("to %v, userID: %v", msg.toIDs, userID)
 			for token, conn := range tokenConns {
-				logs.Log.Debugf("from %v, userID: %v, token %v", msg.from, userID, token)
-				if token == msg.fromToken {
+				logs.Log.Infof("websocket send at host: %v from %v, userID: %v, token %v", currentHost, msg.From, userID, token)
+				if token == msg.FromToken {
 					data, err := json.Marshal(responseMessage{
 						Code:    http.StatusOK,
 						Message: "Send Message successfully",
@@ -189,7 +190,11 @@ func (cs *chatService) processMessage(msg *messageChan) {
 						(*cs).SendErrorMessageByConnection(conn, fmt.Sprintf("Error sending message to user %s (token %s): %v\n", userID, token, err), http.StatusInternalServerError)
 					}
 				} else {
-					data, err := json.Marshal(msg.message)
+					data, err := json.Marshal(responseMessage{
+						Code:    http.StatusOK,
+						Message: "Send Message successfully",
+						Data:    msg.Message,
+					})
 					if err != nil {
 						(*cs).SendErrorMessageByConnection(conn, fmt.Sprintf("Error marshalling message: %v\n", err), http.StatusInternalServerError)
 						return
@@ -202,29 +207,92 @@ func (cs *chatService) processMessage(msg *messageChan) {
 		}
 	}
 
-	logs.Log.Debugf("Send message success from %v to room %v to users %v...\n", msg.from, msg.roomID, msg.toIDs)
+	logs.Log.Infof("Send message success from %v to room %v to users %v...\n", msg.From, msg.RoomID, msg.ToIDs)
 }
 
 func (cs *chatService) processDisconnect(token string) {
-	var userID uuid.UUID
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
 
-	for id, userConns := range cs.connections {
+	for userID, userConns := range cs.connections {
 		if conn, exists := userConns[token]; exists {
-			userID = id
-
 			conn.Close()
 
-			delete(userConns, token)
+			delete(cs.connections[userID], token)
 
-			logs.Log.Debugf("Disconnected token %v for user %v\n", token, userID)
+			logs.Log.Infof("Disconnected token %v for user %v\n", token, userID)
 
 			if len(userConns) == 0 {
+				cs.mu.Lock()
 				delete(cs.connections, userID)
-				logs.Log.Debugf("User %v has no more connections, removed from pool\n", userID)
 			}
-			return
 		}
 	}
+}
 
-	logs.Log.Warningf("Token %v not found in any active connection pool\n", token)
+func (cs *chatService) sendMessageGoroutine(fromToken string, from uuid.UUID, content, messageType string, sendAt uint64, roomID uuid.UUID, toIds []uuid.UUID) {
+	cs.messageChan <- &messageChan{
+		Message: message{
+			MessageType: messageType,
+			Content:     content,
+			SenderID:    from,
+			SendAt:      sendAt,
+		},
+		RoomID:    roomID,
+		ToIDs:     toIds,
+		From:      from,
+		FromToken: fromToken,
+	}
+}
+
+func (cs *chatService) sendMessageToNats(fromToken string, from uuid.UUID, content, messageType string, sendAt uint64, roomID uuid.UUID, toIds []uuid.UUID) {
+	mc := messageChan{
+		Message: message{
+			MessageType: messageType,
+			Content:     content,
+			SenderID:    from,
+			SendAt:      sendAt,
+		},
+		RoomID:    roomID,
+		ToIDs:     toIds,
+		From:      from,
+		FromToken: fromToken,
+	}
+
+	data, err := mcToBytes(mc)
+	if err != nil {
+		cs.SendErrorMessage(fromToken, from, fmt.Sprintf("Error marshalling message to bytes: %v\n", err), http.StatusInternalServerError)
+		return
+	}
+
+	currentHost, _ := os.Hostname()
+	logs.Log.Infof("Befor sending message to via NATS: %v", currentHost)
+	if err := cs.natsConn.Publish(natsTopic, data); err != nil {
+		cs.SendErrorMessage(fromToken, from, fmt.Sprintf("Error marshalling message to bytes: %v\n", err), http.StatusInternalServerError)
+	}
+}
+
+func (cs *chatService) receivedMessageFromNats() (*nats.Subscription, error) {
+	sub, err := cs.natsConn.Subscribe(natsTopic, func(msg *nats.Msg) {
+		var response messageChan
+
+		if err := json.Unmarshal(msg.Data, &response); err != nil {
+			logs.Log.Errorf("Error unmarshalling received message: %v\n", err)
+		}
+
+		logs.Log.Infof("received message from NATS: %+v\n", response)
+		cs.sendMessageGoroutine(response.FromToken, response.From, response.Message.Content, response.Message.MessageType, response.Message.SendAt, response.RoomID, response.ToIDs)
+	})
+
+	logs.Log.Infof("get subscription from nats server")
+
+	return sub, err
+}
+
+func mcToBytes(mc messageChan) ([]byte, error) {
+	data, err := json.Marshal(mc)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling message: %v", err)
+	}
+	return data, nil
 }

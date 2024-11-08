@@ -25,7 +25,7 @@ func (cache *Cache) GetUserID(jwtToken string) (uuid.UUID, error) {
 			if err == redis.Nil {
 				continue // Token not found at this key, keep scanning
 			}
-			return uuid.Nil, fmt.Errorf("Redis error: %v", err)
+			return uuid.Nil, fmt.Errorf("redis error: %v", err)
 		}
 
 		// Check if the stored token matches the jwtToken we're looking for
@@ -37,7 +37,7 @@ func (cache *Cache) GetUserID(jwtToken string) (uuid.UUID, error) {
 			}
 
 			userIDStr := parts[2]
-			logs.Log.Info("userID: %s - redisKey: %s", userIDStr, redisKey)
+			logs.Log.Infof("userID: %s - redisKey: %s", userIDStr, redisKey)
 			userID, err := uuid.Parse(userIDStr)
 			if err != nil {
 				return uuid.Nil, fmt.Errorf("invalid user ID format in key: %s", err)

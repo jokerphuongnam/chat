@@ -18,16 +18,20 @@ type DatabaseConfig struct {
 }
 
 type ServerConfig struct {
-	Port         int          `yaml:"port"`
-	Host         string       `yaml:"host"`
-	IPAddress    string       `yaml:"ip_address"`
-	SecretKey    string       `yaml:"secret_key"`
-	ReadTimeout  int `yaml:"read_timeout"`
-	WriteTimeout int `yaml:"write_timeout"`
-	IdleTimeout  int `yaml:"idle_timeout"`
+	Port         int    `yaml:"port"`
+	Host         string `yaml:"host"`
+	IPAddress    string `yaml:"ip_address"`
+	SecretKey    string `yaml:"secret_key"`
+	ReadTimeout  int    `yaml:"read_timeout"`
+	WriteTimeout int    `yaml:"write_timeout"`
+	IdleTimeout  int    `yaml:"idle_timeout"`
 }
 
 type CacheConfig struct {
+	Addr string `yaml:"addr"`
+}
+
+type NatsConfig struct {
 	Addr string `yaml:"addr"`
 }
 
@@ -37,6 +41,7 @@ type AppConfig struct {
 	Database DatabaseConfig `yaml:"database"`
 	Server   ServerConfig   `yaml:"server"`
 	Cache    CacheConfig    `yaml:"cache"`
+	Nats     NatsConfig     `yaml:"nats"`
 }
 
 func LoadConfig(filePath string) (AppConfig, error) {

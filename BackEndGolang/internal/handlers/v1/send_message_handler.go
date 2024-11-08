@@ -83,7 +83,7 @@ func (handler *Handler) SendMessageHandler(c *gin.Context) {
 		}
 
 		// Send the message to the user.
-		(*handler.ChatService).SendMessage(jwtToken, userID, req.Message, req.MessageType, newMessage.SendTime, newMessage.Room, []uuid.UUID{*toUserId})
+		(*handler.ChatService).SendMessage(nil, jwtToken, userID, req.Message, req.MessageType, newMessage.SendTime, newMessage.Room, []uuid.UUID{*toUserId})
 
 		c.JSON(http.StatusCreated, ResponseMessage{
 			Code:    http.StatusCreated,
@@ -103,7 +103,7 @@ func (handler *Handler) SendMessageHandler(c *gin.Context) {
 		}
 
 		// Send the message to all the users in the room.
-		(*handler.ChatService).SendMessage(jwtToken, userID, req.Message, req.MessageType, newMessage.SendTime, newMessage.Room, roomUsers.UserIds)
+		(*handler.ChatService).SendMessage(nil, jwtToken, userID, req.Message, req.MessageType, newMessage.SendTime, newMessage.Room, roomUsers.UserIds)
 
 		c.JSON(http.StatusCreated, ResponseMessage{
 			Code:    http.StatusCreated,
