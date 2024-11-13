@@ -23,17 +23,17 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: backend-3301
+                      address: chat-service-3301
                       port_value: 3031
               - endpoint:
                   address:
                     socket_address:
-                      address: backend-3302
+                      address: chat-service-3302
                       port_value: 3032
               - endpoint:
                   address:
                     socket_address:
-                      address: backend-3303
+                      address: chat-service-3303
                       port_value: 3033
       type: STRICT_DNS
       lb_policy: ROUND_ROBIN
