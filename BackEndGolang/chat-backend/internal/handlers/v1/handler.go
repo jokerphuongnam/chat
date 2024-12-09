@@ -2,7 +2,8 @@ package handlers
 
 import (
 	"chat-backend/internal/cache"
-	database "chat-backend/internal/db"
+
+	database "../chat-database/db"
 )
 
 type Handler struct {
