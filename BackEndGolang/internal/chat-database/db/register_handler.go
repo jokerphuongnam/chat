@@ -1,9 +1,10 @@
 package database
 
 import (
-	"chat-database/internal/utils"
 	"context"
 	"fmt"
+
+	"chat-database/internal/utils"
 
 	"github.com/google/uuid"
 )

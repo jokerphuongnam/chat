@@ -21,3 +21,5 @@ nats:
 logging:
   level: info
   format: text
+chat-backend:
+ addr: ${API_GATEWAY_ADDR}

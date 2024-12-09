@@ -1,7 +1,7 @@
 package services
 
 import (
-	"chat-service/internal/logs"
+	"chat-logs/logs"
 	"encoding/json"
 	"errors"
 	"fmt"

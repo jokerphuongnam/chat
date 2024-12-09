@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"chat-backend/config"
-	"chat-backend/internal/cache"
-	database "chat-backend/internal/db"
 	"chat-backend/internal/handlers/v1"
-	"chat-backend/internal/logs"
+	"chat-cache/cache"
+	"chat-config/config"
+	database "chat-database/db"
+	"chat-logs/logs"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
@@ -50,7 +50,7 @@ func Execute(config config.AppConfig) *gin.Engine {
 			handler.Cache.StartTokenCleanupScheduler(func() ([]uuid.UUID, error) {
 				return handler.Database.GetAllUsersId()
 			})
-			
+
 			r.POST("/v1/send-message", proxyHandler(fmt.Sprintf("%v", config.ApiGateway.Addr)))
 
 			r.POST("/v1/register", handler.RegisterHandler)

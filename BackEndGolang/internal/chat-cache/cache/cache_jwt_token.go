@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"chat-backend/internal/logs"
+	"chat-logs/logs"
 	"context"
 	"fmt"
 	"time"

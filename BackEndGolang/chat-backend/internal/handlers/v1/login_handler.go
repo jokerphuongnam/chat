@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"chat-backend/internal/logs"
 	"chat-backend/internal/utils"
+	"chat-logs/logs"
 	"fmt"
 	"net/http"
 

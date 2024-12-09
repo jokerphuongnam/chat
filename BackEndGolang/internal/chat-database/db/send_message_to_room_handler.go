@@ -1,11 +1,12 @@
 package database
 
 import (
-	"chat-database/ent/member"
-	"chat-database/ent/message"
 	"context"
 	"fmt"
 	"time"
+
+	"chat-database/ent/member"
+	"chat-database/ent/message"
 
 	"github.com/google/uuid"
 )

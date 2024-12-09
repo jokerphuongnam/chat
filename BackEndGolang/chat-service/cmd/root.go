@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"chat-service/config"
-	"chat-service/internal/cache"
-	database "chat-service/internal/db"
+	"chat-cache/cache"
+	"chat-config/config"
+	database "chat-database/db"
 	"chat-service/internal/handlers/v1"
 	"chat-service/internal/services"
 	"fmt"

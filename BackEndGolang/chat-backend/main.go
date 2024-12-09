@@ -2,8 +2,8 @@ package main
 
 import (
 	"chat-backend/cmd"
-	"chat-backend/config"
-	"chat-backend/internal/logs"
+	"chat-config/config"
+	"chat-logs/logs"
 	"fmt"
 	"net/http"
 	"os"

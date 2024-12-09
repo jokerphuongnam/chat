@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"chat-service/internal/ent/message"
+	"chat-database/ent/message"
 	"fmt"
 )
 

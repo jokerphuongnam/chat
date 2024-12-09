@@ -1,12 +1,13 @@
 package database
 
 import (
-	"chat-backend/ent"
-	"chat-backend/ent/member"
-	"chat-backend/ent/message"
-	"chat-backend/ent/user"
 	"context"
 	"fmt"
+
+	"chat-database/ent"
+	"chat-database/ent/member"
+	"chat-database/ent/message"
+	"chat-database/ent/user"
 
 	"github.com/google/uuid"
 )

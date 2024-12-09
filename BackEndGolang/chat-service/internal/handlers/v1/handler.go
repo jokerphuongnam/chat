@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"chat-service/internal/cache"
-	database "chat-service/internal/db"
+	"chat-cache/cache"
+	database "chat-database/db"
 	"chat-service/internal/services"
 )
 

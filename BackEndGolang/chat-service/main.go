@@ -1,9 +1,9 @@
 package main
 
 import (
+	"chat-config/config"
+	"chat-logs/logs"
 	"chat-service/cmd"
-	"chat-service/config"
-	"chat-service/internal/logs"
 	"fmt"
 	"net/http"
 	"os"

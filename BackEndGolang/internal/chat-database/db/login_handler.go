@@ -1,12 +1,13 @@
 package database
 
 import (
+	"context"
+	"fmt"
+
 	"chat-database/ent/authorize"
 	"chat-database/ent/user"
 	"chat-database/ent/usernamepassword"
 	"chat-database/internal/utils"
-	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 )

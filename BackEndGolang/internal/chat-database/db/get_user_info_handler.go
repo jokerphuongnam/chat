@@ -1,8 +1,9 @@
 package database
 
 import (
-	"chat-database/ent/user"
 	"context"
+
+	"chat-database/ent/user"
 
 	"github.com/google/uuid"
 )

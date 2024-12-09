@@ -35,6 +35,10 @@ type ApiGatewayConfig struct {
 	Addr string `yaml:"addr"`
 }
 
+type NatsConfig struct {
+	Addr string `yaml:"addr"`
+}
+
 type AppConfig struct {
 	AppName    string           `yaml:"app_name"`
 	Version    string           `yaml:"version"`
@@ -42,6 +46,7 @@ type AppConfig struct {
 	Server     ServerConfig     `yaml:"server"`
 	Cache      CacheConfig      `yaml:"cache"`
 	ApiGateway ApiGatewayConfig `yaml:"chat-backend"`
+	Nats       NatsConfig       `yaml:"nats"`
 }
 
 func LoadConfig(filePath string) (AppConfig, error) {

@@ -1,11 +1,13 @@
 package database
 
 import (
-	"chat-config/config"
-	"chat-database/ent"
 	"context"
 	"database/sql"
 	"fmt"
+
+	"chat-database/ent"
+
+	config "chat-config/config"
 
 	"entgo.io/ent/dialect"
 	_ "github.com/go-sql-driver/mysql"
