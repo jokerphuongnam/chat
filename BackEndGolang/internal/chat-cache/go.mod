@@ -1,6 +1,6 @@
 module chat-cache
 
-go 1.23.4
+go 1.23.2
 
 require (
 	github.com/go-redis/redis/v8 v8.11.5

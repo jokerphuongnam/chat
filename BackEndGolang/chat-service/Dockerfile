@@ -7,18 +7,21 @@ WORKDIR /app
 # Copy Go modules manifest
 COPY go.mod go.sum ./
 
-# Copy the config file
-COPY config/config.yaml /app/config/config.yaml
-COPY internal/logs/chat.log /app/internal/logs/chat.log
+# Assuming your Go source code and internal packages are in a parent directory
+COPY ../internal /app/internal
+
+# Copy the full Go source code into the container
+COPY . .
 
 # Download dependencies
+RUN go mod tidy
 RUN go mod download
-
-# Copy the source code
-COPY . .
 
 # Build the Go binary
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o chat-service
+
+# Copy the source code
+COPY . .
 
 # Stage 2: Run the application
 FROM alpine:latest

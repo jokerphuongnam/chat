@@ -51,18 +51,18 @@ services:
     image: chat-backend
     restart: always
     container_name: chat-backend-3300
-    volumes:
-      - ./BackEndGolang/chat-backend/config:/app/config
-      - ./BackEndGolang/chat-backend/internal/logs:/app/internal/logs 
     build:
       context: ./BackEndGolang/chat-backend
       dockerfile: Dockerfile
     depends_on:
-      - db
       - nats-server
       - chat-service-3301
       - chat-service-3302
       - chat-service-3303
+      - chat-cache
+      - chat-config
+      - chat-db
+      - chat-logs
     networks:
       - app-networks
     env_file:
@@ -84,14 +84,14 @@ services:
     image: chat-service
     restart: always
     container_name: chat-service-3301
-    volumes:
-      - ./BackEndGolang/chat-service/config:/app/config
-      - ./BackEndGolang/chat-service/internal/logs:/app/internal/logs 
     build:
       context: ./BackEndGolang/chat-service
       dockerfile: Dockerfile
     depends_on:
-      - db
+      - chat-cache
+      - chat-config
+      - chat-db
+      - chat-logs
     networks:
       - app-networks
     env_file:
@@ -113,14 +113,14 @@ services:
     image: chat-service
     restart: always
     container_name: chat-service-3302
-    volumes:
-      - ./BackEndGolang/chat-service/config:/app/config
-      - ./BackEndGolang/chat-service/internal/logs:/app/internal/logs 
     build:
       context: ./BackEndGolang/chat-service
       dockerfile: Dockerfile
     depends_on:
-      - db
+      - chat-cache
+      - chat-config
+      - chat-db
+      - chat-logs
     networks:
       - app-networks
     env_file:
@@ -144,12 +144,14 @@ services:
     container_name: chat-service-3303
     volumes:
       - ./BackEndGolang/chat-service/config:/app/config
-      - ./BackEndGolang/chat-service/internal/logs:/app/internal/logs 
     build:
       context: ./BackEndGolang/chat-service
       dockerfile: Dockerfile
     depends_on:
-      - db
+      - chat-cache
+      - chat-config
+      - chat-db
+      - chat-logs
     networks:
       - app-networks
     env_file:
@@ -167,15 +169,51 @@ services:
     ports:
       - "3033:3033"
 
-  frontend:
-    container_name: chat-frontend
+  chat-cache:
     build:
-      context: ./FrontEndReactJSTypeScript
+      context: ./BackEndGolang/internal/chat-cache
       dockerfile: Dockerfile
-    networks:
-      - app-networks
-    ports:
-      - "3000:3000"
+    volumes:
+      - ./BackEndGolang/internal/chat-cache:/internal/chat-cache
+    depends_on:
+      - redis
+      - chat-logs
+
+  chat-config:
+    build:
+      context: ./BackEndGolang/internal/chat-config
+      dockerfile: Dockerfile
+    volumes:
+      - ./BackEndGolang/internal/chat-config/config:/app/internal/chat-config/config
+    command: ["cat", "config/config.yaml"]
+
+  chat-db:
+    build:
+      context: ./BackEndGolang/internal/chat-database
+      dockerfile: Dockerfile
+    volumes:
+      - ./BackEndGolang/internal/chat-database:/internal/chat-database
+    depends_on:
+      - db
+      - chat-config
+
+  chat-logs:
+    build:
+      context: ./BackEndGolang/internal/chat-logs
+      dockerfile: Dockerfile
+    volumes:
+      - ./BackEndGolang/internal/chat-logs/logs:/app/internal/chat-logs/logs
+    command: ["cat", "logs/chat.log"]
+
+  # frontend:
+  #   container_name: chat-frontend
+  #   build:
+  #     context: ./FrontEndReactJSTypeScript
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     - app-networks
+  #   ports:
+  #     - "3000:3000"
 
 volumes:
   mysql_data:

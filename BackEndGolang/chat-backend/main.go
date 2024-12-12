@@ -4,27 +4,19 @@ import (
 	"chat-backend/cmd"
 	"chat-config/config"
 	"chat-logs/logs"
+	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	// Set output to a file
-	logPath := filepath.Join("internal", "logs", "chat.log")
-	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		fmt.Printf("Error opening log file")
-		logs.Log.Fatal(err)
-		return
+	file := logs.SetupLogger(context.Background())
+	if file != nil {
+		defer file.Close()
 	}
-	defer file.Close()
-	logs.Log.SetOutput(file)
-	logs.Log.SetFormatter(&logrus.JSONFormatter{})
+
 	configPath := filepath.Join("config", "config.yaml")
 	config, err := config.LoadConfig(configPath)
 

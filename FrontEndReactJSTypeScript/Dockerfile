@@ -4,10 +4,15 @@ FROM node:18 AS builder
 WORKDIR /app
 
 # Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+COPY package.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --package-lock-only
+
+# Verify that package-lock.json is created
+RUN [ -f "package-lock.json" ] && echo "package-lock.json created successfully"
+
+COPY package.json ./
 
 # Copy the rest of the application
 COPY . .
