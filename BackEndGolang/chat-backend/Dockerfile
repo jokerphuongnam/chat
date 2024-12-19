@@ -34,7 +34,7 @@ FROM alpine:latest
 WORKDIR /app/chat-backend
 
 # Copy the binary from the builder stage
-COPY --from=builder /app/api-gateway .
+COPY --from=builder /app/chat-backend .
 
 # Make the binary executable
 RUN chmod +x chat-backend

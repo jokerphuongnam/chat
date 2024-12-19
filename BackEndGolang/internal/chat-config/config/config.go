@@ -49,7 +49,7 @@ type AppConfig struct {
 	Nats       NatsConfig       `yaml:"nats"`
 }
 
-func LoadConfig(filePath string) (AppConfig, error) {
+func LoadConfig(filePath string, expandEnv func(string) string) (AppConfig, error) {
 	// Load environment variables from .env file if present
 	if err := godotenv.Load(); err != nil {
 		log.Println("Warning: No .env file found")
@@ -67,7 +67,9 @@ func LoadConfig(filePath string) (AppConfig, error) {
 	}
 
 	// Replace environment variables in YAML content
-	yamlContent := os.ExpandEnv(string(yamlFile))
+	yamlContent := expandEnv(string(yamlFile))
+
+	fmt.Print(yamlContent)
 
 	fmt.Printf("Content %s...\n", yamlContent)
 

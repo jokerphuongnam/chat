@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 )
@@ -17,9 +18,11 @@ func main() {
 	if file != nil {
 		defer file.Close()
 	}
+	
 	configPath := filepath.Join("config", "config.yaml")
-	config, err := config.LoadConfig(configPath)
-
+	config, err := config.LoadConfig(configPath, func(config string) string {
+		return os.ExpandEnv(config)
+	})
 	if err != nil {
 		fmt.Println(err)
 		return
