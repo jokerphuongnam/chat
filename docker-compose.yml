@@ -88,42 +88,13 @@ services:
     restart: always
     container_name: chat-backend-3300
     build:
-      context: ./BackEndGolang/chat-backend
-      dockerfile: Dockerfile
+      context: ./BackEndGolang
+      dockerfile: chat-backend/Dockerfile
     depends_on:
       - nats-server
       - chat-service-3301
       - chat-service-3302
       - chat-service-3303
-      - chat-cache
-      - chat-config
-      - chat-db
-      - chat-logs
-    networks:
-      - app-networks
-    env_file:
-      - ./BackEndGolang/chat-service/.env
-    environment:
-      MYSQL_ROOT_HOST: db
-      MYSQL_USERNAME: root
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: chat
-      SERVER_PORT: 3300
-      SERVER_HOST: 0.0.0.0
-      SECRET_KEY: jaEBg95cX-WF0MBYymV8zf7KQDOTY9gz49BCUcasQPY=
-      REDIS_ADDR: chat-redis:6379
-      API_GATEWAY_ADDR: http://host.docker.internal:3030
-    ports:
-      - "3300:3300"
-
-  chat-service-3301:
-    image: chat-service
-    restart: always
-    container_name: chat-service-3301
-    build:
-      context: ./BackEndGolang/chat-service
-      dockerfile: Dockerfile
-    depends_on:
       - chat-cache
       - chat-config
       - chat-db
@@ -137,7 +108,36 @@ services:
       MYSQL_USERNAME: root
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: chat
-      SERVER_PORT: 3031
+      SERVER_PORT: 3300
+      SERVER_HOST: 0.0.0.0
+      SECRET_KEY: jaEBg95cX-WF0MBYymV8zf7KQDOTY9gz49BCUcasQPY=
+      REDIS_ADDR: chat-redis:6379
+      API_GATEWAY_ADDR: http://host.docker.internal:3300
+    ports:
+      - "3300:3300"
+
+  chat-service-3301:
+    image: chat-service-3301
+    restart: always
+    container_name: chat-service-3301
+    build:
+      context: ./BackEndGolang
+      dockerfile: chat-service/Dockerfile
+    depends_on:
+      - chat-cache
+      - chat-config
+      - chat-db
+      - chat-logs
+    networks:
+      - app-networks
+    env_file:
+      - ./BackEndGolang/chat-service/.env
+    environment:
+      MYSQL_ROOT_HOST: db
+      MYSQL_USERNAME: root
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: chat
+      SERVER_PORT: 3301
       SERVER_HOST: 0.0.0.0
       SECRET_KEY: jaEBg95cX-WF0MBYymV8zf7KQDOTY9gz49BCUcasQPY=
       REDIS_ADDR: chat-redis:6379
@@ -146,12 +146,12 @@ services:
       - "3031:3031"
 
   chat-service-3302:
-    image: chat-service
+    image: chat-service-3302
     restart: always
     container_name: chat-service-3302
     build:
-      context: ./BackEndGolang/chat-service
-      dockerfile: Dockerfile
+      context: ./BackEndGolang
+      dockerfile: chat-service/Dockerfile
     depends_on:
       - chat-cache
       - chat-config
@@ -166,7 +166,7 @@ services:
       MYSQL_USERNAME: root
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: chat
-      SERVER_PORT: 3032
+      SERVER_PORT: 3302
       SERVER_HOST: 0.0.0.0
       SECRET_KEY: jaEBg95cX-WF0MBYymV8zf7KQDOTY9gz49BCUcasQPY=
       REDIS_ADDR: chat-redis:6379
@@ -175,14 +175,14 @@ services:
       - "3032:3032"
 
   chat-service-3303:
-    image: chat-service
+    image: chat-service-3303
     restart: always
     container_name: chat-service-3303
     volumes:
       - ./BackEndGolang/chat-service/config:/app/config
     build:
-      context: ./BackEndGolang/chat-service
-      dockerfile: Dockerfile
+      context: ./BackEndGolang
+      dockerfile: chat-service/Dockerfile
     depends_on:
       - chat-cache
       - chat-config
@@ -197,7 +197,7 @@ services:
       MYSQL_USERNAME: root
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: chat
-      SERVER_PORT: 3033
+      SERVER_PORT: 3303
       SERVER_HOST: 0.0.0.0
       SECRET_KEY: jaEBg95cX-WF0MBYymV8zf7KQDOTY9gz49BCUcasQPY=
       REDIS_ADDR: chat-redis:6379
