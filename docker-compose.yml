@@ -47,6 +47,42 @@ services:
       - chat-service-3303
       - chat-backend
 
+  chat-cache:
+    build:
+      context: ./BackEndGolang/internal/chat-cache
+      dockerfile: Dockerfile
+    volumes:
+      - ./BackEndGolang/internal/chat-cache:/internal/chat-cache
+    depends_on:
+      - redis
+      - chat-logs
+
+  chat-config:
+    build:
+      context: ./BackEndGolang/internal/chat-config
+      dockerfile: Dockerfile
+    volumes:
+      - ./BackEndGolang/internal/chat-config/config:/app/internal/chat-config/config
+    command: ["cat", "config/config.yaml"]
+
+  chat-db:
+    build:
+      context: ./BackEndGolang/internal/chat-database
+      dockerfile: Dockerfile
+    volumes:
+      - ./BackEndGolang/internal/chat-database:/internal/chat-database
+    depends_on:
+      - db
+      - chat-config
+
+  chat-logs:
+    build:
+      context: ./BackEndGolang/internal/chat-logs
+      dockerfile: Dockerfile
+    volumes:
+      - ./BackEndGolang/internal/chat-logs/logs:/app/internal/chat-logs/logs
+    command: ["cat", "logs/chat.log"]
+
   chat-backend:
     image: chat-backend
     restart: always
@@ -168,42 +204,6 @@ services:
       NATS_URL: nats://nats-server:4222
     ports:
       - "3033:3033"
-
-  chat-cache:
-    build:
-      context: ./BackEndGolang/internal/chat-cache
-      dockerfile: Dockerfile
-    volumes:
-      - ./BackEndGolang/internal/chat-cache:/internal/chat-cache
-    depends_on:
-      - redis
-      - chat-logs
-
-  chat-config:
-    build:
-      context: ./BackEndGolang/internal/chat-config
-      dockerfile: Dockerfile
-    volumes:
-      - ./BackEndGolang/internal/chat-config/config:/app/internal/chat-config/config
-    command: ["cat", "config/config.yaml"]
-
-  chat-db:
-    build:
-      context: ./BackEndGolang/internal/chat-database
-      dockerfile: Dockerfile
-    volumes:
-      - ./BackEndGolang/internal/chat-database:/internal/chat-database
-    depends_on:
-      - db
-      - chat-config
-
-  chat-logs:
-    build:
-      context: ./BackEndGolang/internal/chat-logs
-      dockerfile: Dockerfile
-    volumes:
-      - ./BackEndGolang/internal/chat-logs/logs:/app/internal/chat-logs/logs
-    command: ["cat", "logs/chat.log"]
 
   # frontend:
   #   container_name: chat-frontend
